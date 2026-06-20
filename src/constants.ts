@@ -39,7 +39,7 @@ export const MODULES: ModuleMeta[] = [
     description: '小数点の いちに気をつけて',
     icon: 'X',
     accent: 'violet',
-    status: 'soon',
+    status: 'ready',
   },
   {
     id: 'number-line',
