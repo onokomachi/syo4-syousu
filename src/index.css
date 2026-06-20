@@ -1,10 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", "Noto Sans JP", ui-sans-serif, system-ui, sans-serif;
+  /* 資料: 読みやすい UD フォントを採用（BIZ UDPGothic）。 */
+  --font-sans: "BIZ UDPGothic", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  
+
   --color-brand-primary: #3B82F6;
   --color-brand-secondary: #10B981;
   --color-brand-accent: #F59E0B;
@@ -12,7 +13,20 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 font-sans antialiased overflow-hidden;
+    @apply text-slate-900 font-sans antialiased overflow-hidden;
+    background-color: var(--app-bg, #f8fafc);
+  }
+
+  /* 背景コントラスト設定（Settings から data-theme で切替）。
+     ホワイトスペースを保ちつつ、まぶしさを抑えるための土台レベル切替。 */
+  body[data-theme='light'] {
+    --app-bg: #f8fafc; /* slate-50 */
+  }
+  body[data-theme='cream'] {
+    --app-bg: #f6efdc; /* 目にやさしいクリーム */
+  }
+  body[data-theme='dark'] {
+    --app-bg: #0f172a; /* slate-900 */
   }
 }
 
