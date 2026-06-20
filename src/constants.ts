@@ -31,7 +31,7 @@ export const MODULES: ModuleMeta[] = [
     description: '小数点をそろえて 筆算しよう',
     icon: 'PlusSquare',
     accent: 'emerald',
-    status: 'soon',
+    status: 'ready',
   },
   {
     id: 'decimal-muldiv',

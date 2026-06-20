@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Hub } from './components/Hub';
 import { DivisionModule } from './components/modules/DivisionModule';
+import { DecimalAddSubModule } from './components/modules/DecimalAddSubModule';
 import { LogView } from './components/LogView';
 import { ComingSoon } from './components/modules/ComingSoon';
 import { ModuleId } from './store/progressStore';
@@ -25,6 +26,8 @@ export default function App() {
     switch (id) {
       case 'division':
         return <DivisionModule onExit={goHub} />;
+      case 'decimal-addsub':
+        return <DecimalAddSubModule onExit={goHub} />;
       default: {
         const meta = MODULES.find((m) => m.id === id);
         return <ComingSoon title={meta?.title ?? ''} onBack={goHub} />;
