@@ -8,7 +8,6 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { getProgressStorage } from '../services/progressRepository';
 
 export type ModuleId =
-  | 'division'
   | 'decimal-addsub'
   | 'decimal-muldiv'
   | 'error-hunter'

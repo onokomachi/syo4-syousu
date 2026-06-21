@@ -1,4 +1,3 @@
-import { Difficulty } from './types';
 import { ModuleId } from './store/progressStore';
 
 /**
@@ -17,14 +16,6 @@ export interface ModuleMeta {
 }
 
 export const MODULES: ModuleMeta[] = [
-  {
-    id: 'division',
-    title: 'わり算の筆算',
-    description: 'たてる・かける・ひく・おろす をマスター',
-    icon: 'Divide',
-    accent: 'blue',
-    status: 'ready',
-  },
   {
     id: 'place-value',
     title: '位取りラボ',
@@ -74,22 +65,3 @@ export const MODULES: ModuleMeta[] = [
     status: 'ready',
   },
 ];
-
-export const LEVEL_CONFIG: Record<Difficulty, { label: string; description: string }> = {
-  '2-1': {
-    label: '2けた ÷ 1けた',
-    description: 'まずはここから！基本の筆算。'
-  },
-  '3-1': {
-    label: '3けた ÷ 1けた',
-    description: '少し長くなります。丁寧にやりましょう。'
-  },
-  '2-2': {
-    label: '2けた ÷ 2けた',
-    description: '「たてる」数の見当をつけよう。'
-  },
-  '3-2': {
-    label: '3けた ÷ 2けた',
-    description: '4年生のクライマックス！'
-  }
-};
