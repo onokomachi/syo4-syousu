@@ -22,6 +22,7 @@ export const DivisionModule: React.FC<Props> = ({ onExit }) => {
   const [lastSettings, setLastSettings] = useState<{ diff: Difficulty; allowRemainder: boolean; masterMode: boolean } | null>(null);
   const [todayStats, setTodayStats] = useState<Record<string, number>>({});
   const recordResult = useProgressStore((s) => s.recordResult);
+  const getMastery = useProgressStore((s) => s.getMastery);
 
   useEffect(() => {
     setTodayStats(progressService.getTodayStats());
@@ -77,6 +78,7 @@ export const DivisionModule: React.FC<Props> = ({ onExit }) => {
                 initialDifficulty={lastSettings?.diff}
                 initialAllowRemainder={lastSettings?.allowRemainder}
                 initialMasterMode={lastSettings?.masterMode}
+                getMastery={(diff) => getMastery(`division-${diff}`)}
               />
             </div>
           </motion.div>

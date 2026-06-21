@@ -15,6 +15,7 @@ import {
   LINE_LEVELS, LineLevel, LineProblem, generateLine, lineTicks,
 } from '../../lib/numberLine';
 import { useProgressStore } from '../../store/progressStore';
+import { LevelCard } from '../ui/primitives';
 import { playClear, playSoftTry } from '../../lib/sound';
 import { useAdaptive } from '../../lib/useAdaptive';
 import { AdaptiveBar } from '../shared/AdaptiveBar';
@@ -35,6 +36,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const lineAdaptive = useAdaptive(LINE_LEVELS.map((l) => l.id), 'line');
   const effCompareLevel = mode === 'adaptive' ? compareAdaptive.level : compareLevel;
   const effLineLevel = mode === 'adaptive' ? lineAdaptive.level : lineLevel;
+  const getMastery = useProgressStore((s) => s.getMastery);
 
   const startCompare = (lv: CompareLevel) => { setActivity('compare'); setMode('fixed'); setCompareLevel(lv); setPair(generateCompare(lv)); setPhase('SIM'); };
   const startLine = (lv: LineLevel) => { setActivity('line'); setMode('fixed'); setLineLevel(lv); setLineProblem(generateLine(lv)); setPhase('SIM'); };
@@ -57,10 +59,14 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
             </button>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {COMPARE_LEVELS.map((lv) => (
-                <button key={lv.id} onClick={() => startCompare(lv.id)} className="p-5 rounded-3xl bg-surface border-2 border-line hover:border-amber-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
-                  <div className="text-lg font-black text-content mb-1">{lv.label}</div>
-                  <div className="text-sm text-muted font-medium">{lv.description}</div>
-                </button>
+                <LevelCard
+                  key={lv.id}
+                  label={lv.label}
+                  desc={lv.description}
+                  mastery={getMastery(`compare-${lv.id}`)}
+                  onClick={() => startCompare(lv.id)}
+                  accentBorder="hover:border-amber-400"
+                />
               ))}
             </div>
           </div>
@@ -72,10 +78,14 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
             </button>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {LINE_LEVELS.map((lv) => (
-                <button key={lv.id} onClick={() => startLine(lv.id)} className="p-5 rounded-3xl bg-surface border-2 border-line hover:border-amber-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
-                  <div className="text-lg font-black text-content mb-1">{lv.label}</div>
-                  <div className="text-sm text-muted font-medium">{lv.description}</div>
-                </button>
+                <LevelCard
+                  key={lv.id}
+                  label={lv.label}
+                  desc={lv.description}
+                  mastery={getMastery(`line-${lv.id}`)}
+                  onClick={() => startLine(lv.id)}
+                  accentBorder="hover:border-amber-400"
+                />
               ))}
             </div>
           </div>
@@ -232,9 +242,15 @@ const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel; onNext
               <p className="text-center text-muted font-bold mb-4">あてはまる しるしを えらぼう</p>
               <div className="flex justify-center gap-4 mb-2">{(['>', '=', '<'] as const).map(btn)}</div>
               {picked && picked !== correct && (
-                <div className="mt-6 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-start gap-2">
-                  <Lightbulb className="text-amber-500 shrink-0" size={20} />
-                  <p className="text-muted font-bold">数直線で たしかめよう。右にあるほうが 大きいよ。</p>
+                <div className="mt-6 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-2">
+                  <Lightbulb className="text-amber-500 shrink-0 mt-0.5" size={20} />
+                  <p className="text-content font-bold">
+                    数直線で たしかめよう。
+                    {correct === '='
+                      ? `${pair.aStr} と ${pair.bStr} は 同じ 場所だよ。`
+                      : `${correct === '>' ? pair.aStr : pair.bStr} の ほうが 右にある = 大きい よ。`}
+                    下の 数直線を 見てね。
+                  </p>
                 </div>
               )}
             </>

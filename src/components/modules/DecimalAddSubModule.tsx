@@ -17,6 +17,7 @@ import {
   ADDSUB_LEVELS, AddSubLevel, AddSubProblem, buildColumns, generateAddSub, placeName,
 } from '../../lib/decimal';
 import { useProgressStore } from '../../store/progressStore';
+import { LevelCard } from '../ui/primitives';
 import { useSettingsStore } from '../../store/settingsStore';
 import { speak } from '../../lib/speech';
 import { playClear, playCorrect, playSoftTry } from '../../lib/sound';
@@ -40,6 +41,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   const [problem, setProblem] = useState<AddSubProblem | null>(null);
   const adaptive = useAdaptive(ADDSUB_LEVELS.map((l) => l.id), 'addsub');
   const effectiveLevel = mode === 'adaptive' ? adaptive.level : level;
+  const getMastery = useProgressStore((s) => s.getMastery);
 
   const start = (lv: AddSubLevel) => {
     setMode('fixed');
@@ -76,14 +78,14 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {ADDSUB_LEVELS.map((lv) => (
-              <button
+              <LevelCard
                 key={lv.id}
+                label={lv.label}
+                desc={lv.description}
+                mastery={getMastery(`addsub-${lv.id}`)}
                 onClick={() => start(lv.id)}
-                className="p-6 rounded-3xl bg-surface border-2 border-line hover:border-emerald-400 hover:shadow-lg text-left transition-all active:scale-[0.98]"
-              >
-                <div className="text-xl font-black text-content mb-1">{lv.label}</div>
-                <div className="text-sm text-muted font-medium">{lv.description}</div>
-              </button>
+                accentBorder="hover:border-emerald-400"
+              />
             ))}
           </div>
         </div>
