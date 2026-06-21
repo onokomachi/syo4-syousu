@@ -13,7 +13,6 @@ import { ModuleId, useProgressStore } from '../store/progressStore';
 import { Settings } from './Settings';
 import { speak } from '../lib/speech';
 import { useSettingsStore } from '../store/settingsStore';
-import { Mascot } from './ui/Mascot';
 import { GoalRing } from './ui/GoalRing';
 import { getReviewTargets } from '../lib/review';
 
@@ -109,9 +108,6 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog }) => {
 
         {/* タイトル */}
         <div className="text-center pt-2 pb-8 flex flex-col items-center">
-          <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }} className="mb-1">
-            <Mascot mood="happy" size={88} />
-          </motion.div>
           <div className="mb-3">
             <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ring-blue-200">
               4年生のさんすう

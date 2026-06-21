@@ -10,7 +10,6 @@ import confetti from 'canvas-confetti';
 import { AppShell } from '../shared/AppShell';
 import { SpeakButton } from '../shared/SpeakButton';
 import { AnswerEntry } from '../shared/AnswerEntry';
-import { Mascot } from '../ui/Mascot';
 import { HintBox, ResultPanel, Button } from '../ui/primitives';
 import { WordProblem, generateWordProblem } from '../../lib/wordProblems';
 import { useProgressStore } from '../../store/progressStore';
@@ -31,7 +30,6 @@ export const WordProblemModule: React.FC<Props> = ({ onExit }) => {
             <ChevronLeft size={24} /> 小数ランドへ
           </button>
           <div className="bg-surface border border-line rounded-[28px] shadow-xl p-8 md:p-12 text-center mt-4">
-            <Mascot mood="happy" size={96} className="mx-auto mb-4" />
             <h1 className="text-3xl font-black text-content mb-2">ことばの もんだい</h1>
             <p className="text-muted font-bold leading-relaxed mb-8">
               おはなしを よんで、まず <span className="text-content">「しき」</span>を えらぼう。<br />

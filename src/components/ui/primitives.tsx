@@ -3,8 +3,7 @@
  */
 import React from 'react';
 import { motion } from 'motion/react';
-import { ChevronLeft } from 'lucide-react';
-import { Mascot } from './Mascot';
+import { ChevronLeft, Lightbulb, Sparkles } from 'lucide-react';
 import { SpeakButton } from '../shared/SpeakButton';
 import { praiseClear } from '../../lib/praise';
 
@@ -42,10 +41,12 @@ export const MasteryBar: React.FC<{ value: number; segments?: number }> = ({ val
   );
 };
 
-/* ---- HintBox（マスコット＋ヒント＋読み上げ） ---- */
-export const HintBox: React.FC<{ children: React.ReactNode; speakText?: string; tone?: 'hint' | 'wrong'; mood?: 'think' | 'idle' }> = ({ children, speakText, tone = 'hint', mood = 'think' }) => (
+/* ---- HintBox（アイコン＋ヒント＋読み上げ） ---- */
+export const HintBox: React.FC<{ children: React.ReactNode; speakText?: string; tone?: 'hint' | 'wrong' }> = ({ children, speakText, tone = 'hint' }) => (
   <div className={`rounded-3xl p-5 border flex items-start gap-3 ${tone === 'wrong' ? 'bg-amber-50 border-amber-200' : 'bg-surface-2 border-line'}`}>
-    <Mascot mood={mood} size={44} className="shrink-0" />
+    <span className={`shrink-0 w-11 h-11 rounded-full flex items-center justify-center ${tone === 'wrong' ? 'bg-amber-100 text-amber-600' : 'bg-surface-3 text-brand'}`}>
+      <Lightbulb size={24} />
+    </span>
     <div className="flex-1 min-w-0">
       <p className="text-content font-bold leading-relaxed">{children}</p>
     </div>
@@ -53,11 +54,11 @@ export const HintBox: React.FC<{ children: React.ReactNode; speakText?: string; 
   </div>
 );
 
-/* ---- ResultPanel（クリア時の共通パネル：プロセス称賛＋マスコット） ---- */
+/* ---- ResultPanel（クリア時の共通パネル：プロセス称賛＋アイコン） ---- */
 export const ResultPanel: React.FC<{ perfect: boolean; detail?: React.ReactNode; onNext: () => void; nextLabel?: string; accentClass?: string }> = ({ perfect, detail, onNext, nextLabel = 'つぎの もんだい', accentClass = 'bg-emerald-500 hover:bg-emerald-600' }) => (
   <div className="flex flex-col items-center text-center p-6 bg-surface-2 border border-line rounded-3xl">
-    <motion.div initial={{ scale: 0.7, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }}>
-      <Mascot mood="cheer" size={84} />
+    <motion.div initial={{ scale: 0.7, rotate: -8 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }} className="w-20 h-20 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center">
+      <Sparkles size={44} />
     </motion.div>
     <h3 className="text-xl font-black text-content mt-2 mb-1">{perfect ? 'パーフェクト！' : 'できたね！'}</h3>
     <p className="text-muted font-bold mb-2">{praiseClear(perfect)}</p>
