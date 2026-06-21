@@ -10,6 +10,8 @@ import { DivisionModule } from './components/modules/DivisionModule';
 import { DecimalAddSubModule } from './components/modules/DecimalAddSubModule';
 import { DecimalMulDivModule } from './components/modules/DecimalMulDivModule';
 import { NumberLineModule } from './components/modules/NumberLineModule';
+import { PlaceValueLab } from './components/modules/PlaceValueLab';
+import { ErrorHunterModule } from './components/modules/ErrorHunterModule';
 import { LogView } from './components/LogView';
 import { ComingSoon } from './components/modules/ComingSoon';
 import { ModuleId } from './store/progressStore';
@@ -34,6 +36,10 @@ export default function App() {
         return <DecimalMulDivModule onExit={goHub} />;
       case 'number-line':
         return <NumberLineModule onExit={goHub} />;
+      case 'place-value':
+        return <PlaceValueLab onExit={goHub} />;
+      case 'error-hunter':
+        return <ErrorHunterModule onExit={goHub} />;
       default: {
         const meta = MODULES.find((m) => m.id === id);
         return <ComingSoon title={meta?.title ?? ''} onBack={goHub} />;

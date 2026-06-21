@@ -55,7 +55,7 @@ export const MODULES: ModuleMeta[] = [
     description: '0.1 や 0.01 を あつめてみよう',
     icon: 'LayoutGrid',
     accent: 'rose',
-    status: 'soon',
+    status: 'ready',
   },
   {
     id: 'error-hunter',
@@ -63,7 +63,7 @@ export const MODULES: ModuleMeta[] = [
     description: 'まちがいを 見つけて なおそう',
     icon: 'Search',
     accent: 'cyan',
-    status: 'soon',
+    status: 'ready',
   },
 ];
 
