@@ -1,24 +1,41 @@
-
+/**
+ * がくしゅうのきろく。全モジュール横断（progressStore）の進捗・連続記録・履歴・ごほうびバッジ。
+ */
 import React from 'react';
 import { motion } from 'motion/react';
-import { ChevronLeft, Calendar, Award, CheckCircle2, History, Trophy, TrendingUp, Crown } from 'lucide-react';
-import { LogEntry, progressService } from '../services/progressService';
-import { LEVEL_CONFIG } from '../constants';
+import {
+  ChevronLeft, Calendar, CheckCircle2, History, Trophy, TrendingUp, Award as AwardIcon,
+  Star, Sparkles, Award, Flame, Crown, Divide, PlusSquare, X, Ruler, LayoutGrid, Search, Lock,
+} from 'lucide-react';
+import { useProgressStore, ModuleId } from '../store/progressStore';
+import { MODULES } from '../constants';
+import { computeBadges } from '../lib/badges';
 
-interface Props {
-  onBack: () => void;
-}
+interface Props { onBack: () => void; }
+
+const ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  Star, Sparkles, Award, Trophy, Flame, Crown, Divide, PlusSquare, X, Ruler, LayoutGrid, Search,
+};
 
 export const LogView: React.FC<Props> = ({ onBack }) => {
-  const logs = progressService.getLogs();
-  const streaks = progressService.getStreaks();
+  const logs = useProgressStore((s) => s.logs);
+  const maxStreak = useProgressStore((s) => s.maxStreak);
+  const currentStreak = useProgressStore((s) => s.currentStreak);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const todayTimestamp = today.getTime();
-  const logsToday = logs.filter(log => log.timestamp >= todayTimestamp);
-  const countToday = logsToday.length;
-  const masterClearsToday = logsToday.filter(log => log.isMasterMode).length;
+  const todayTs = today.getTime();
+
+  const totalCorrect = logs.filter((l) => l.correct).length;
+  const countToday = logs.filter((l) => l.ts >= todayTs && l.correct).length;
+
+  const moduleCounts: Record<string, number> = {};
+  MODULES.forEach((m) => (moduleCounts[m.id] = logs.filter((l) => l.moduleId === m.id && l.correct).length));
+
+  const badges = computeBadges({ totalCorrect, maxStreak, moduleCounts });
+  const earnedCount = badges.filter((b) => b.earned).length;
+
+  const moduleTitle = (id: ModuleId) => MODULES.find((m) => m.id === id)?.title ?? id;
 
   const formatDate = (ts: number) => {
     const d = new Date(ts);
@@ -27,152 +44,120 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
-      {/* Header */}
       <div className="flex items-center justify-between p-6 bg-white border-b border-slate-100 shadow-sm sticky top-0 z-10">
-        <button 
-          onClick={onBack}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-bold"
-        >
-          <ChevronLeft size={20} />
-          <span>もどる</span>
+        <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-bold">
+          <ChevronLeft size={20} /><span>もどる</span>
         </button>
         <div className="flex items-center gap-2 text-blue-600">
-          <History size={24} />
-          <h2 className="text-xl font-black tracking-tight">がくしゅうのきろく</h2>
+          <History size={24} /><h2 className="text-xl font-black tracking-tight">がくしゅうのきろく</h2>
         </div>
-        <div className="w-20"></div>
+        <div className="w-20" />
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 md:p-8">
         <div className="max-w-4xl mx-auto space-y-6">
-          {/* Today's Summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-blue-600 p-8 rounded-[40px] text-white shadow-xl shadow-blue-200/50 flex items-center justify-between overflow-hidden relative"
-            >
-              <div className="relative z-10">
-                <div className="text-blue-100 text-xs font-black uppercase tracking-widest mb-1">きょう 正解（せいかい）した数</div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-6xl font-black">{countToday}</span>
-                  <span className="text-blue-100 text-xl font-bold">問</span>
-                </div>
-              </div>
-              <CheckCircle2 size={80} className="text-white/10 absolute -right-3 -bottom-3" strokeWidth={3} />
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-gradient-to-br from-indigo-500 to-indigo-700 p-8 rounded-[40px] text-white shadow-xl shadow-indigo-200/50 flex items-center justify-between overflow-hidden relative"
-            >
-              <div className="relative z-10">
-                <div className="text-indigo-100 text-xs font-black uppercase tracking-widest mb-1">きょうのマスターモードクリア</div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-6xl font-black">{masterClearsToday}</span>
-                  <span className="text-indigo-100 text-xl font-bold">問</span>
-                </div>
-              </div>
-              <Crown size={80} className="text-white/10 absolute -right-3 -bottom-3" strokeWidth={2} />
-            </motion.div>
+          {/* サマリー */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <SummaryCard color="bg-blue-600" label="きょう クリア" value={countToday} icon={<CheckCircle2 size={64} />} />
+            <SummaryCard color="bg-indigo-600" label="ぜんぶで クリア" value={totalCorrect} icon={<Trophy size={64} />} />
+            <SummaryCard color="bg-gradient-to-br from-amber-500 to-orange-600" label="いま 連続ノーミス" value={currentStreak} icon={<TrendingUp size={64} />} />
+            <SummaryCard color="bg-gradient-to-br from-rose-500 to-pink-600" label="最高 連続記録" value={maxStreak} icon={<Flame size={64} />} />
           </div>
 
-          {/* Streaks Header Area */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-br from-amber-500 to-orange-600 p-6 rounded-[32px] text-white shadow-lg shadow-amber-200/50 flex items-center justify-between"
-            >
-              <div>
-                <div className="text-amber-100/80 text-xs font-black uppercase tracking-widest mb-1">現在のれんぞくノーミス</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black">{streaks.current}</span>
-                  <span className="text-amber-100 text-sm font-bold">問</span>
-                </div>
-              </div>
-              <TrendingUp size={40} className="text-white/30" strokeWidth={3} />
-            </motion.div>
-
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="bg-white p-6 rounded-[32px] text-slate-800 border border-slate-100 shadow-sm flex items-center justify-between"
-            >
-              <div>
-                <div className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">さいこうれんぞくきろく</div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-black text-slate-700">{streaks.max}</span>
-                  <span className="text-slate-400 text-sm font-bold">問</span>
-                </div>
-              </div>
-              <Trophy size={40} className="text-amber-400/20" strokeWidth={3} />
-            </motion.div>
+          {/* モジュール別 */}
+          <div>
+            <div className="flex items-center gap-2 px-2 mb-3">
+              <span className="text-slate-400 text-xs font-black uppercase tracking-widest">コースべつ クリア数</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {MODULES.map((m) => {
+                const Icon = ICONS[m.icon] ?? Divide;
+                return (
+                  <div key={m.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0"><Icon size={20} /></div>
+                    <div className="min-w-0">
+                      <div className="text-xs font-bold text-slate-500 truncate">{m.title}</div>
+                      <div className="text-xl font-black text-slate-800 tabular-nums">{moduleCounts[m.id]}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="space-y-4">
+          {/* バッジ */}
+          <div>
+            <div className="flex items-center gap-2 px-2 mb-3">
+              <AwardIcon size={16} className="text-amber-400" />
+              <span className="text-slate-400 text-xs font-black uppercase tracking-widest">ごほうびバッジ（{earnedCount}/{badges.length}）</span>
+            </div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+              {badges.map((b) => {
+                const Icon = ICONS[b.icon] ?? Star;
+                return (
+                  <div key={b.id} className={`rounded-2xl p-4 flex flex-col items-center text-center border ${b.earned ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100 opacity-60'}`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${b.earned ? 'bg-amber-400 text-white' : 'bg-slate-100 text-slate-300'}`}>
+                      {b.earned ? <Icon size={24} /> : <Lock size={20} />}
+                    </div>
+                    <div className={`text-xs font-black ${b.earned ? 'text-amber-700' : 'text-slate-400'}`}>{b.title}</div>
+                    <div className="text-[10px] text-slate-400 font-bold mt-0.5">{b.desc}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 履歴 */}
+          <div className="space-y-3">
             <div className="flex items-center gap-2 px-2">
               <History size={16} className="text-slate-400" />
               <span className="text-slate-400 text-xs font-black uppercase tracking-widest">これまでのきろく</span>
             </div>
-          {logs.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
-              <Calendar className="mx-auto text-slate-300 mb-4" size={48} />
-              <p className="text-slate-500 font-bold">まだデータがありません。問題を解いてみよう！</p>
-            </div>
-          ) : (
-            logs.map((log, idx) => (
-              <motion.div 
-                key={log.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-                    <CheckCircle2 size={24} />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">{formatDate(log.timestamp)}</span>
-                      <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-black uppercase">
-                        {LEVEL_CONFIG[log.difficulty]?.label}
-                      </span>
+            {logs.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200">
+                <Calendar className="mx-auto text-slate-300 mb-4" size={48} />
+                <p className="text-slate-500 font-bold">まだ きろくが ありません。やってみよう！</p>
+              </div>
+            ) : (
+              logs.slice(0, 50).map((log, idx) => (
+                <motion.div key={log.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(idx * 0.03, 0.5) }}
+                  className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${log.correct ? 'bg-emerald-50 text-emerald-500' : 'bg-slate-50 text-slate-400'}`}>
+                      <CheckCircle2 size={20} />
                     </div>
-                    <div className="text-xl font-black text-slate-800">
-                      {log.problem.dividend} ÷ {log.problem.divisor}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-400 text-xs font-bold">{formatDate(log.ts)}</span>
+                        <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-black truncate">{moduleTitle(log.moduleId)}</span>
+                      </div>
+                      <div className="text-lg font-black text-slate-800 truncate">{log.label}</div>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  {log.isPerfect && (
-                    <div className="flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-xs font-black shadow-sm ring-1 ring-amber-200">
-                      <Award size={14} />
-                      <span>ノーミス！</span>
+                  {log.correct && (
+                    <div className="flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-xs font-black shrink-0 ml-2">
+                      <AwardIcon size={14} /><span>ノーミス！</span>
                     </div>
                   )}
-                  {log.isMasterMode && (
-                    <div className="flex items-center gap-1 bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-full text-xs font-black shadow-sm ring-1 ring-indigo-200">
-                      <Crown size={14} className="text-indigo-600" />
-                      <span>マスター</span>
-                    </div>
-                  )}
-                  <div className="text-slate-400 font-black text-xs uppercase tracking-widest hidden sm:block">
-                    COMPLETED
-                  </div>
-                </div>
-              </motion.div>
-            ))
-          )}
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+const SummaryCard: React.FC<{ color: string; label: string; value: number; icon: React.ReactNode }> = ({ color, label, value, icon }) => (
+  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`${color} p-5 rounded-[28px] text-white shadow-lg flex items-center justify-between overflow-hidden relative`}>
+    <div className="relative z-10">
+      <div className="text-white/80 text-[11px] font-black uppercase tracking-wider mb-1">{label}</div>
+      <div className="flex items-baseline gap-1">
+        <span className="text-4xl font-black tabular-nums">{value}</span>
+        <span className="text-white/80 text-sm font-bold">問</span>
+      </div>
+    </div>
+    <div className="text-white/10 absolute -right-2 -bottom-2">{icon}</div>
+  </motion.div>
+);

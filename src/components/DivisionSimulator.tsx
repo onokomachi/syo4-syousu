@@ -3,6 +3,7 @@ import { Problem, StepType } from '../types';
 import { ArrowDown, Delete, ChevronLeft, RotateCcw, PartyPopper } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import confetti from 'canvas-confetti';
+import { playClear, playSoftTry } from '../lib/sound';
 
 interface Props {
   problem: Problem;
@@ -174,6 +175,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
 
     if (!errorsFound) {
       setIsFinished(true);
+      playClear();
       confetti({
         particleCount: 150,
         spread: 70,
@@ -353,6 +355,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
   };
 
   const triggerError = (msg?: string) => {
+    playSoftTry();
     setMistakeCount(prev => prev + 1);
     if (msg) setFeedback(msg);
     // Visual feedback for error
@@ -365,6 +368,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
   const finish = () => {
     setIsFinished(true);
     setSubStep('DIVIDE'); // Clear active interactions
+    playClear();
     confetti({
       particleCount: 150,
       spread: 70,
