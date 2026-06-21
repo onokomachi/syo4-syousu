@@ -5,7 +5,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import {
   ChevronLeft, Calendar, CheckCircle2, History, Trophy, TrendingUp, Award as AwardIcon,
-  Star, Sparkles, Award, Flame, Crown, Divide, PlusSquare, X, Ruler, LayoutGrid, Search, Lock,
+  Star, Sparkles, Award, Flame, Crown, Divide, PlusSquare, X, Ruler, LayoutGrid, Search, BookOpen, Lock,
 } from 'lucide-react';
 import { useProgressStore, ModuleId } from '../store/progressStore';
 import { MODULES } from '../constants';
@@ -14,7 +14,7 @@ import { computeBadges } from '../lib/badges';
 interface Props { onBack: () => void; }
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  Star, Sparkles, Award, Trophy, Flame, Crown, Divide, PlusSquare, X, Ruler, LayoutGrid, Search,
+  Star, Sparkles, Award, Trophy, Flame, Crown, Divide, PlusSquare, X, Ruler, LayoutGrid, Search, BookOpen,
 };
 
 export const LogView: React.FC<Props> = ({ onBack }) => {

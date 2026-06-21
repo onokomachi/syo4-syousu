@@ -13,7 +13,8 @@ export type ModuleId =
   | 'decimal-muldiv'
   | 'error-hunter'
   | 'number-line'
-  | 'place-value';
+  | 'place-value'
+  | 'word-problem';
 
 export interface ResultRecord {
   id: string;

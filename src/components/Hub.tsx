@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Divide, PlusSquare, X, Ruler, LayoutGrid, Search,
+  Divide, PlusSquare, X, Ruler, LayoutGrid, Search, BookOpen,
   History, Settings as SettingsIcon, Lock, Volume2,
 } from 'lucide-react';
 import { MODULES, ModuleMeta } from '../constants';
@@ -21,7 +21,7 @@ interface Props {
 }
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
-  Divide, PlusSquare, X, Ruler, LayoutGrid, Search,
+  Divide, PlusSquare, X, Ruler, LayoutGrid, Search, BookOpen,
 };
 
 // Tailwind がパージしないよう静的に定義
@@ -32,6 +32,7 @@ const ACCENT: Record<string, { bg: string; text: string; ring: string }> = {
   amber: { bg: 'bg-amber-50', text: 'text-amber-600', ring: 'group-hover:ring-amber-300' },
   rose: { bg: 'bg-rose-50', text: 'text-rose-600', ring: 'group-hover:ring-rose-300' },
   cyan: { bg: 'bg-cyan-50', text: 'text-cyan-600', ring: 'group-hover:ring-cyan-300' },
+  teal: { bg: 'bg-teal-50', text: 'text-teal-600', ring: 'group-hover:ring-teal-300' },
 };
 
 const ModuleCard: React.FC<{ m: ModuleMeta; onClick: () => void; cleared: number }> = ({ m, onClick, cleared }) => {
