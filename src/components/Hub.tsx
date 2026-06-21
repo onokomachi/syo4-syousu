@@ -14,6 +14,7 @@ import { Settings } from './Settings';
 import { speak } from '../lib/speech';
 import { useSettingsStore } from '../store/settingsStore';
 import { Mascot } from './ui/Mascot';
+import { GoalRing } from './ui/GoalRing';
 
 interface Props {
   onSelectModule: (id: ModuleId) => void;
@@ -83,7 +84,9 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog }) => {
     <div className="w-full h-full overflow-y-auto">
       <div className="max-w-6xl mx-auto px-6 py-6">
         {/* トップバー */}
-        <div className="flex justify-end gap-3 mb-2">
+        <div className="flex justify-between items-center gap-3 mb-2">
+          <GoalRing />
+          <div className="flex gap-3">
           <button
             onClick={onOpenLog}
             className="flex items-center gap-2 bg-surface px-5 py-2.5 rounded-full shadow-sm border border-line text-muted font-bold hover:bg-surface-2 transition-all"
@@ -98,6 +101,7 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog }) => {
             <SettingsIcon size={20} />
             <span>せってい</span>
           </button>
+          </div>
         </div>
 
         {/* タイトル */}

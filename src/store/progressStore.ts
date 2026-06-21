@@ -35,9 +35,12 @@ interface ProgressState {
   mastery: Record<string, SkillMastery>;
   currentStreak: number;
   maxStreak: number;
+  dailyGoal: number;
   recordResult: (rec: Omit<ResultRecord, 'id' | 'ts'>) => void;
   getMastery: (skillId: string) => number; // 0..1（試行なしは 0）
   getModuleCount: (moduleId: ModuleId) => number;
+  getTodayCount: () => number; // きょう 正解した数
+  setDailyGoal: (n: number) => void;
   reset: () => void;
 }
 
@@ -48,6 +51,7 @@ export const useProgressStore = create<ProgressState>()(
       mastery: {},
       currentStreak: 0,
       maxStreak: 0,
+      dailyGoal: 10,
 
       recordResult: (rec) => {
         set((state) => {
@@ -82,6 +86,15 @@ export const useProgressStore = create<ProgressState>()(
 
       getModuleCount: (moduleId) =>
         get().logs.filter((l) => l.moduleId === moduleId && l.correct).length,
+
+      getTodayCount: () => {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const t = start.getTime();
+        return get().logs.filter((l) => l.ts >= t && l.correct).length;
+      },
+
+      setDailyGoal: (n) => set({ dailyGoal: n }),
 
       reset: () => set({ logs: [], mastery: {}, currentStreak: 0, maxStreak: 0 }),
     }),
