@@ -13,6 +13,7 @@ import { ModuleId, useProgressStore } from '../store/progressStore';
 import { Settings } from './Settings';
 import { speak } from '../lib/speech';
 import { useSettingsStore } from '../store/settingsStore';
+import { Mascot } from './ui/Mascot';
 
 interface Props {
   onSelectModule: (id: ModuleId) => void;
@@ -48,7 +49,7 @@ const ModuleCard: React.FC<{ m: ModuleMeta; onClick: () => void; cleared: number
         if (ttsEnabled) speak(m.title);
         onClick();
       }}
-      className={`group relative text-left p-6 rounded-[28px] bg-white border border-slate-100 shadow-sm ring-2 ring-transparent transition-all ${
+      className={`group relative text-left p-6 rounded-[28px] bg-surface border border-line shadow-sm ring-2 ring-transparent transition-all ${
         isReady ? `hover:shadow-lg ${accent.ring} cursor-pointer` : 'opacity-60 cursor-not-allowed'
       }`}
     >
@@ -57,7 +58,7 @@ const ModuleCard: React.FC<{ m: ModuleMeta; onClick: () => void; cleared: number
           <Icon size={32} />
         </div>
         {!isReady && (
-          <span className="flex items-center gap-1 bg-slate-100 text-slate-400 px-3 py-1 rounded-full text-xs font-black">
+          <span className="flex items-center gap-1 bg-surface-3 text-faint px-3 py-1 rounded-full text-xs font-black">
             <Lock size={14} /> じゅんびちゅう
           </span>
         )}
@@ -67,8 +68,8 @@ const ModuleCard: React.FC<{ m: ModuleMeta; onClick: () => void; cleared: number
           </span>
         )}
       </div>
-      <h3 className="text-xl font-black text-slate-800 mb-1">{m.title}</h3>
-      <p className="text-sm text-slate-500 font-medium">{m.description}</p>
+      <h3 className="text-xl font-black text-content mb-1">{m.title}</h3>
+      <p className="text-sm text-muted font-medium">{m.description}</p>
     </motion.button>
   );
 };
@@ -84,14 +85,14 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog }) => {
         <div className="flex justify-end gap-3 mb-2">
           <button
             onClick={onOpenLog}
-            className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full shadow-sm border border-slate-100 text-slate-600 font-bold hover:bg-slate-50 transition-all"
+            className="flex items-center gap-2 bg-surface px-5 py-2.5 rounded-full shadow-sm border border-line text-muted font-bold hover:bg-surface-2 transition-all"
           >
             <History size={20} />
             <span>がくしゅうのきろく</span>
           </button>
           <button
             onClick={() => setShowSettings(true)}
-            className="flex items-center gap-2 bg-white px-5 py-2.5 rounded-full shadow-sm border border-slate-100 text-slate-600 font-bold hover:bg-slate-50 transition-all"
+            className="flex items-center gap-2 bg-surface px-5 py-2.5 rounded-full shadow-sm border border-line text-muted font-bold hover:bg-surface-2 transition-all"
           >
             <SettingsIcon size={20} />
             <span>せってい</span>
@@ -99,14 +100,17 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog }) => {
         </div>
 
         {/* タイトル */}
-        <div className="text-center pt-2 pb-8">
+        <div className="text-center pt-2 pb-8 flex flex-col items-center">
+          <motion.div animate={{ y: [0, -6, 0] }} transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }} className="mb-1">
+            <Mascot mood="happy" size={88} />
+          </motion.div>
           <div className="mb-3">
             <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ring-blue-200">
               4年生のさんすう
             </span>
           </div>
           <div className="flex items-center justify-center gap-3">
-            <h1 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-black text-content tracking-tight">
               小数<span className="text-blue-600">ランド</span>
             </h1>
             <button
@@ -117,7 +121,7 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog }) => {
               <Volume2 size={24} />
             </button>
           </div>
-          <p className="text-slate-500 font-medium mt-2">すきなところから はじめよう！</p>
+          <p className="text-muted font-medium mt-2">すきなところから はじめよう！</p>
         </div>
 
         {/* モジュール */}

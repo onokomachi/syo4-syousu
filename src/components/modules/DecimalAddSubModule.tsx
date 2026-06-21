@@ -59,12 +59,12 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
         <div className="max-w-3xl mx-auto px-4 py-6">
           <button
             onClick={onExit}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors mb-2"
+            className="flex items-center gap-2 text-muted hover:text-content font-bold px-3 py-2 rounded-xl hover:bg-surface-3 transition-colors mb-2"
           >
             <ChevronLeft size={24} /> 小数ランドへ
           </button>
-          <h1 className="text-3xl font-black text-slate-800 text-center mb-1">小数の たし算・ひき算</h1>
-          <p className="text-slate-500 text-center font-medium mb-6">小数点を そろえて 計算しよう</p>
+          <h1 className="text-3xl font-black text-content text-center mb-1">小数の たし算・ひき算</h1>
+          <p className="text-muted text-center font-medium mb-6">小数点を そろえて 計算しよう</p>
 
           <button onClick={startAdaptive} className="w-full mb-4 p-5 rounded-3xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg hover:shadow-xl text-left transition-all active:scale-[0.98] flex items-center gap-3">
             <Wand2 size={28} />
@@ -79,10 +79,10 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
               <button
                 key={lv.id}
                 onClick={() => start(lv.id)}
-                className="p-6 rounded-3xl bg-white border-2 border-slate-100 hover:border-emerald-400 hover:shadow-lg text-left transition-all active:scale-[0.98]"
+                className="p-6 rounded-3xl bg-surface border-2 border-line hover:border-emerald-400 hover:shadow-lg text-left transition-all active:scale-[0.98]"
               >
-                <div className="text-xl font-black text-slate-800 mb-1">{lv.label}</div>
-                <div className="text-sm text-slate-500 font-medium">{lv.description}</div>
+                <div className="text-xl font-black text-content mb-1">{lv.label}</div>
+                <div className="text-sm text-muted font-medium">{lv.description}</div>
               </button>
             ))}
           </div>
@@ -227,9 +227,9 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
         }`}
       >
         {kind === 'helperZero' ? (
-          <span className="text-slate-300">{digit}</span>
+          <span className="text-faint">{digit}</span>
         ) : kind === 'digit' ? (
-          <span className="text-slate-800">{digit}</span>
+          <span className="text-content">{digit}</span>
         ) : null}
       </div>
     );
@@ -237,7 +237,7 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
 
   const renderRow = (cells: { place: number; kind: string; digit?: string }[], op?: string) => (
     <div className="flex items-center" style={{ width: gridWidth, height: ROW_H }}>
-      <div style={{ width: OP_W, height: ROW_H }} className="flex items-center justify-center text-3xl font-black text-slate-500">
+      <div style={{ width: OP_W, height: ROW_H }} className="flex items-center justify-center text-3xl font-black text-muted">
         {op ?? ''}
       </div>
       {intPlaces.map((p) => {
@@ -256,10 +256,10 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
     <div className="flex flex-col md:flex-row h-full">
       {/* 計算ワークスペース */}
       <div className="flex-1 overflow-auto p-4 md:p-10 flex justify-center items-start">
-        <div className="bg-white p-8 md:p-12 rounded-[36px] shadow-2xl border border-slate-100 relative">
+        <div className="bg-surface p-8 md:p-12 rounded-[36px] shadow-2xl border border-line relative">
           {/* 問題式 */}
           <div className="flex items-center justify-center gap-3 mb-6">
-            <h2 className="text-2xl font-black text-slate-700 tabular-nums">
+            <h2 className="text-2xl font-black text-content tabular-nums">
               {problem.a} {problem.op} {problem.b}
             </h2>
             <SpeakButton text={`${problem.a} ${opWord} ${problem.b}`} />
@@ -331,7 +331,7 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
       </div>
 
       {/* サイドパネル */}
-      <div className="w-full md:w-[400px] bg-white border-l border-slate-100 p-6 md:p-8 flex flex-col gap-5 overflow-y-auto">
+      <div className="w-full md:w-[400px] bg-surface border-l border-line p-6 md:p-8 flex flex-col gap-5 overflow-y-auto">
         {finished ? (
           <div className="flex-1 flex flex-col justify-center items-center p-6 bg-emerald-50 border border-emerald-100 rounded-3xl text-center">
             <span className="text-6xl mb-4">{mistakes === 0 ? '🏆' : '🎉'}</span>
@@ -364,7 +364,7 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
                   />
                 )}
               </div>
-              <p className="text-slate-600 font-bold leading-relaxed">
+              <p className="text-muted font-bold leading-relaxed">
                 {hint ??
                   (activePlace !== null
                     ? `${placeName(activePlace)}から 計算しよう。右の位から じゅんばんに もとめてね。`
@@ -387,7 +387,7 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
             if (ttsEnabled) speak('さいしょから');
             reset();
           }}
-          className="flex items-center justify-center gap-2 text-slate-400 hover:text-slate-600 py-4 font-bold border-t border-slate-100 shrink-0"
+          className="flex items-center justify-center gap-2 text-faint hover:text-muted py-4 font-bold border-t border-line shrink-0"
         >
           <RotateCcw size={20} /> さいしょから
         </button>

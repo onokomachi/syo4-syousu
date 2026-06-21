@@ -29,7 +29,7 @@ export const Keypad: React.FC<Props> = ({
           <button
             key={n}
             onClick={() => onInput(n.toString())}
-            className="h-20 bg-slate-100 hover:bg-slate-200 active:bg-blue-600 active:text-white rounded-2xl text-3xl font-black text-slate-700 transition-all flex items-center justify-center shadow-sm"
+            className="h-20 bg-surface-3 hover:bg-surface-3 active:bg-blue-600 active:text-white rounded-2xl text-3xl font-black text-content transition-all flex items-center justify-center shadow-sm"
           >
             {n}
           </button>
@@ -49,7 +49,7 @@ export const Keypad: React.FC<Props> = ({
 
         <button
           onClick={() => onInput('0')}
-          className="h-20 bg-slate-100 hover:bg-slate-200 active:bg-blue-600 active:text-white rounded-2xl text-3xl font-black text-slate-700 transition-all flex items-center justify-center shadow-sm"
+          className="h-20 bg-surface-3 hover:bg-surface-3 active:bg-blue-600 active:text-white rounded-2xl text-3xl font-black text-content transition-all flex items-center justify-center shadow-sm"
         >
           0
         </button>
@@ -70,7 +70,7 @@ export const Keypad: React.FC<Props> = ({
           className={`w-full py-6 rounded-3xl text-2xl font-black shadow-lg transition-all flex items-center justify-center gap-3 ${
             submitEnabled
               ? 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
-              : 'bg-slate-100 text-slate-300'
+              : 'bg-surface-3 text-faint'
           }`}
         >
           {submitLabel}

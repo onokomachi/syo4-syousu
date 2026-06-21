@@ -25,13 +25,13 @@ export const ErrorHunterModule: React.FC<Props> = ({ onExit }) => {
     return (
       <div className="w-full h-full overflow-y-auto">
         <div className="max-w-2xl mx-auto px-4 py-6">
-          <button onClick={onExit} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors mb-2">
+          <button onClick={onExit} className="flex items-center gap-2 text-muted hover:text-content font-bold px-3 py-2 rounded-xl hover:bg-surface-3 transition-colors mb-2">
             <ChevronLeft size={24} /> 小数ランドへ
           </button>
-          <div className="bg-white rounded-[36px] shadow-2xl border border-slate-100 p-8 md:p-12 text-center mt-4">
+          <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-8 md:p-12 text-center mt-4">
             <div className="w-24 h-24 rounded-3xl bg-cyan-50 text-cyan-600 flex items-center justify-center mx-auto mb-6"><Search size={44} /></div>
-            <h1 className="text-3xl font-black text-slate-800 mb-2">エラーハンター</h1>
-            <p className="text-slate-500 font-bold leading-relaxed mb-8">
+            <h1 className="text-3xl font-black text-content mb-2">エラーハンター</h1>
+            <p className="text-muted font-bold leading-relaxed mb-8">
               ともだちの 計算を チェック！「正しい？ まちがい？」を 見ぬいて、まちがいは 正しく なおそう。<br />まちがいは 学びの たからもの だよ。
             </p>
             <button onClick={() => setStarted(true)} className="px-10 py-4 bg-cyan-500 hover:bg-cyan-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">スタート！</button>
@@ -89,41 +89,41 @@ const ErrorRound: React.FC<{ ex: ErrorExample; onNext: () => void }> = ({ ex, on
   return (
     <div className="h-full overflow-y-auto p-4 md:p-8">
       <div className="max-w-xl mx-auto">
-        <div className="bg-white rounded-[36px] shadow-2xl border border-slate-100 p-6 md:p-10">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
           {/* 出題（ともだちの計算） */}
-          <div className="bg-slate-50 rounded-3xl p-6 mb-6 border border-slate-100">
+          <div className="bg-surface-2 rounded-3xl p-6 mb-6 border border-line">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-black text-slate-400">{ex.character}さんの こたえ</span>
+              <span className="text-sm font-black text-faint">{ex.character}さんの こたえ</span>
               <SpeakButton text={ex.speak} />
             </div>
-            <div className="text-4xl md:text-5xl font-black text-slate-800 text-center tabular-nums py-2">{ex.expr}</div>
+            <div className="text-4xl md:text-5xl font-black text-content text-center tabular-nums py-2">{ex.expr}</div>
           </div>
 
           {hint && (
             <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2">
-              <Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-slate-600 font-bold">{hint}</p><SpeakButton text={hint} />
+              <Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} />
             </div>
           )}
 
           {stage === 'judge' && (
             <>
-              <p className="text-center text-slate-500 font-bold mb-4">この こたえは…？</p>
+              <p className="text-center text-muted font-bold mb-4">この こたえは…？</p>
               <div className="flex justify-center gap-4">
-                <button onClick={() => judge(true)} className="flex items-center gap-2 px-8 py-5 rounded-2xl bg-white border-2 border-emerald-200 text-emerald-600 font-black text-xl hover:bg-emerald-50 active:scale-95 transition-all"><Check size={28} /> 正しい</button>
-                <button onClick={() => judge(false)} className="flex items-center gap-2 px-8 py-5 rounded-2xl bg-white border-2 border-rose-200 text-rose-500 font-black text-xl hover:bg-rose-50 active:scale-95 transition-all"><X size={28} /> まちがい</button>
+                <button onClick={() => judge(true)} className="flex items-center gap-2 px-8 py-5 rounded-2xl bg-surface border-2 border-emerald-200 text-emerald-600 font-black text-xl hover:bg-emerald-50 active:scale-95 transition-all"><Check size={28} /> 正しい</button>
+                <button onClick={() => judge(false)} className="flex items-center gap-2 px-8 py-5 rounded-2xl bg-surface border-2 border-rose-200 text-rose-500 font-black text-xl hover:bg-rose-50 active:scale-95 transition-all"><X size={28} /> まちがい</button>
               </div>
             </>
           )}
 
           {stage === 'fix' && (
             <>
-              <p className="text-center text-slate-600 font-black mb-4">正しい こたえは？</p>
+              <p className="text-center text-muted font-black mb-4">正しい こたえは？</p>
               {ex.fixKind === 'number' ? (
                 <AnswerEntry onSubmit={submitFix} allowDecimal accentText="text-cyan-600" />
               ) : (
                 <div className="flex justify-center gap-4">
                   {(['>', '=', '<'] as const).map((s) => (
-                    <button key={s} onClick={() => submitSign(s)} className="w-24 h-24 rounded-3xl text-5xl font-black bg-white border-2 border-slate-200 text-slate-700 hover:border-cyan-400 active:scale-95 transition-all">{s}</button>
+                    <button key={s} onClick={() => submitSign(s)} className="w-24 h-24 rounded-3xl text-5xl font-black bg-surface border-2 border-line text-content hover:border-cyan-400 active:scale-95 transition-all">{s}</button>
                   ))}
                 </div>
               )}
@@ -132,10 +132,10 @@ const ErrorRound: React.FC<{ ex: ErrorExample; onNext: () => void }> = ({ ex, on
 
           {stage === 'reason' && (
             <>
-              <p className="text-center text-slate-600 font-black mb-4">なぜ まちがえたのかな？</p>
+              <p className="text-center text-muted font-black mb-4">なぜ まちがえたのかな？</p>
               <div className="flex flex-col gap-3">
                 {ex.reasonOptions.map((r, i) => (
-                  <button key={i} onClick={() => chooseReason(i)} className="text-left p-4 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 font-bold hover:border-cyan-400 active:scale-[0.99] transition-all">{r}</button>
+                  <button key={i} onClick={() => chooseReason(i)} className="text-left p-4 rounded-2xl bg-surface border-2 border-line text-content font-bold hover:border-cyan-400 active:scale-[0.99] transition-all">{r}</button>
                 ))}
               </div>
             </>

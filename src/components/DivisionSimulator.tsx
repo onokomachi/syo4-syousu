@@ -382,16 +382,16 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 simulator-container">
+    <div className="flex flex-col h-screen bg-surface-2 simulator-container">
       {/* Header */}
-      <div className="flex items-center justify-between p-6 bg-white border-b border-slate-100 shadow-sm">
-        <button onClick={onBack} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold px-4 py-2 rounded-xl hover:bg-slate-50 transition-colors">
+      <div className="flex items-center justify-between p-6 bg-surface border-b border-line shadow-sm">
+        <button onClick={onBack} className="flex items-center gap-2 text-muted hover:text-content font-bold px-4 py-2 rounded-xl hover:bg-surface-2 transition-colors">
           <ChevronLeft size={24} />
           もどる
         </button>
         <div className="flex items-center gap-3">
            <span className="text-sm font-bold text-blue-500 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest">わる算ラボ</span>
-           <h1 className="text-2xl font-black text-slate-800">{dividend} ÷ {divisor}</h1>
+           <h1 className="text-2xl font-black text-content">{dividend} ÷ {divisor}</h1>
         </div>
         <div className="w-24"></div>
       </div>
@@ -411,12 +411,12 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                 initial={{ scale: 0.9, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.9, y: 20 }}
-                className="bg-white rounded-[40px] p-8 max-w-sm w-full shadow-2xl text-center border-4 border-amber-400"
+                className="bg-surface rounded-[40px] p-8 max-w-sm w-full shadow-2xl text-center border-4 border-amber-400"
               >
                 <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
                   <span className="text-4xl">💡</span>
                 </div>
-                <h3 className="text-2xl font-black text-slate-800 mb-4 whitespace-pre-wrap">
+                <h3 className="text-2xl font-black text-content mb-4 whitespace-pre-wrap">
                   {feedback}
                 </h3>
                 <button 
@@ -432,7 +432,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
 
         {/* Main Workspace */}
         <div className="flex-1 relative overflow-auto p-4 md:p-12 flex justify-center items-start">
-          <div className="bg-white p-8 md:p-12 rounded-[30px] md:rounded-[40px] shadow-2xl border border-blue-50/50 min-w-[500px] md:min-w-[600px] relative">
+          <div className="bg-surface p-8 md:p-12 rounded-[30px] md:rounded-[40px] shadow-2xl border border-blue-50/50 min-w-[500px] md:min-w-[600px] relative">
             
             {/* Instruction Overlay (Moved inside or adjusted for iPad) */}
             <div className="hidden lg:block absolute -left-28 top-0 mt-8 w-24 space-y-3">
@@ -440,7 +440,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                  const stepWords = ['DIVIDE', 'MULTIPLY', 'SUBTRACT', 'BRING_DOWN'];
                  const isActive = subStep === stepWords[i];
                  return (
-                   <div key={s} className={`p-2.5 rounded-xl text-center font-black text-sm transition-all ${isActive && !isAllEntered ? 'bg-blue-600 text-white shadow-lg scale-110' : 'bg-white text-slate-300 border border-slate-100'}`}>
+                   <div key={s} className={`p-2.5 rounded-xl text-center font-black text-sm transition-all ${isActive && !isAllEntered ? 'bg-blue-600 text-white shadow-lg scale-110' : 'bg-surface text-faint border border-line'}`}>
                      {s}
                    </div>
                  )
@@ -453,14 +453,14 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                  const stepWords = ['DIVIDE', 'MULTIPLY', 'SUBTRACT', 'BRING_DOWN'];
                  const isActive = subStep === stepWords[i];
                  return (
-                   <div key={s} className={`px-4 py-2 rounded-full text-center font-black text-xs whitespace-nowrap transition-all ${isActive && !isAllEntered ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-slate-300 border border-slate-100'}`}>
+                   <div key={s} className={`px-4 py-2 rounded-full text-center font-black text-xs whitespace-nowrap transition-all ${isActive && !isAllEntered ? 'bg-blue-600 text-white shadow-md' : 'bg-surface text-faint border border-line'}`}>
                      {s}
                    </div>
                  )
                })}
             </div>
             
-            <div className="font-mono text-5xl leading-none tracking-widest text-slate-700 select-none">
+            <div className="font-mono text-5xl leading-none tracking-widest text-content select-none">
               
               {/* Row 0: Quotient */}
               <div 
@@ -516,7 +516,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                 style={{ gridTemplateColumns: `64px repeat(${dividendStr.length}, 56px)` }}
               >
                  {/* Divisor */}
-                 <div className="col-start-1 flex justify-end pr-3 text-slate-800 font-bold border-r-4 border-slate-800 h-full items-center z-20">
+                 <div className="col-start-1 flex justify-end pr-3 text-content font-bold border-r-4 border-slate-800 h-full items-center z-20">
                      {divisor}
                  </div>
                  
@@ -527,7 +527,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                    const isBeingUsed = !isFinished && !isAllEntered && subStep === 'DIVIDE' && i <= activeStep?.index && (i >= (stepIndex === 0 ? 0 : realSteps[stepIndex-1].index + 1));
                    
                    return (
-                     <div key={i} className={`w-14 h-16 flex items-center justify-center relative font-bold text-slate-800 transition-colors ${isBeingUsed ? 'bg-amber-50 text-amber-700' : ''}`}>
+                     <div key={i} className={`w-14 h-16 flex items-center justify-center relative font-bold text-content transition-colors ${isBeingUsed ? 'bg-amber-50 text-amber-700' : ''}`}>
                         <AnimatePresence>
                           {subStep === 'BRING_DOWN' && nextStep?.digitIndex === i && !isAllEntered ? (
                             <motion.div
@@ -570,7 +570,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                             <div className="absolute left-[64px] right-0 bottom-0 border-b-2 border-slate-300"></div>
                          )}
                          
-                         <div className="col-start-1 text-slate-400 font-bold text-xl flex justify-end pr-3">
+                         <div className="col-start-1 text-faint font-bold text-xl flex justify-end pr-3">
                             {row.type === 'multiply' ? '×' : (idx > 0 && gridData.slice(2)[idx-1].type === 'multiply' ? '-' : '')}
                          </div>
 
@@ -651,7 +651,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                            const char = isTarget ? valStr[dividendIdx - startIdx] : '';
                            
                            return (
-                             <div key={dividendIdx} className={`w-14 h-16 flex justify-center items-center ${isTarget ? 'bg-white shadow-lg ring-4 ring-blue-500 ring-inset rounded-xl z-10' : ''}`}>
+                             <div key={dividendIdx} className={`w-14 h-16 flex justify-center items-center ${isTarget ? 'bg-surface shadow-lg ring-4 ring-blue-500 ring-inset rounded-xl z-10' : ''}`}>
                                 <span className="text-blue-600 font-black text-4xl">{char}</span>
                                 {isTarget && !char && dividendIdx === startIdx && <span className="text-blue-200 animate-pulse">？</span>}
                              </div>
@@ -676,7 +676,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
         </div>
 
         {/* Side Controls / Keypad */}
-        <div className="w-full md:w-[400px] bg-white border-l border-slate-100 p-6 md:p-8 flex flex-col gap-6 shadow-[-10px_0_30px_rgba(0,0,0,0.02)] overflow-y-auto">
+        <div className="w-full md:w-[400px] bg-surface border-l border-line p-6 md:p-8 flex flex-col gap-6 shadow-[-10px_0_30px_rgba(0,0,0,0.02)] overflow-y-auto">
           
           {/* Graded and Perfect Score State */}
           {isGraded && !hasMistakes && (
@@ -725,7 +725,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                   setIsGraded(false);
                   setHasMistakes(null);
                 }}
-                className="w-full py-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-2xl font-bold transition-all"
+                className="w-full py-3 bg-surface hover:bg-surface-2 border border-line text-content rounded-2xl font-bold transition-all"
               >
                 はじめからやりなおす
               </button>
@@ -736,8 +736,8 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
           {isMasterMode && isAllEntered && !isGraded && (
              <div className="flex-1 flex flex-col justify-center items-center p-4 bg-amber-50/50 border border-amber-100 rounded-3xl text-center">
                <span className="text-5xl mb-4">📝</span>
-               <h3 className="text-2xl font-black text-slate-800 mb-2">すべて入力しました！</h3>
-               <p className="text-slate-500 font-medium mb-6">さいごに「答え合わせ」ボタンをおして、まる付けをしよう！</p>
+               <h3 className="text-2xl font-black text-content mb-2">すべて入力しました！</h3>
+               <p className="text-muted font-medium mb-6">さいごに「答え合わせ」ボタンをおして、まる付けをしよう！</p>
                <button
                  onClick={doGrading}
                  className="w-full py-6 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-3xl font-black text-2xl shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-3 animate-bounce"
@@ -746,7 +746,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                </button>
                <button
                  onClick={handleUndo}
-                 className="mt-4 text-slate-400 hover:text-slate-600 font-bold flex items-center gap-2 text-sm"
+                 className="mt-4 text-faint hover:text-muted font-bold flex items-center gap-2 text-sm"
                >
                  <RotateCcw size={16} /> <span>1つもどってなおす</span>
                </button>
@@ -757,11 +757,11 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
           {(!isAllEntered && !isGraded) && (
             <>
               {isMasterMode ? (
-                <div className="bg-gradient-to-br from-indigo-50 to-amber-50 p-6 rounded-3xl shrink-0 border border-slate-100">
+                <div className="bg-gradient-to-br from-indigo-50 to-amber-50 p-6 rounded-3xl shrink-0 border border-line">
                    <h3 className="text-indigo-650 font-black text-lg mb-2 flex items-center gap-2">
                        👑 マスターモード
                    </h3>
-                   <p className="text-slate-600 font-black text-sm leading-relaxed">
+                   <p className="text-muted font-black text-sm leading-relaxed">
                      ヒントは なしだよ！じぶんで かんがえて、すべてのマスを うめてね。さいごに「答え合わせ」ボタンを押そう！
                    </p>
                 </div>
@@ -785,7 +785,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                  {isMasterMode && history.length > 0 && (
                    <button
                      onClick={handleUndo}
-                     className="w-full py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-3xl text-sm font-black transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm"
+                     className="w-full py-3.5 bg-surface-3 hover:bg-surface-3 text-muted rounded-3xl text-sm font-black transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm"
                    >
                      <RotateCcw size={16} />
                      <span>1つもどる</span>
@@ -797,7 +797,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                      <button
                        key={n}
                        onClick={() => handleKeypad(n.toString())}
-                       className="h-20 bg-slate-100 hover:bg-slate-200 active:bg-blue-600 active:text-white rounded-2xl text-3xl font-black text-slate-700 transition-all flex items-center justify-center shadow-sm"
+                       className="h-20 bg-surface-3 hover:bg-surface-3 active:bg-blue-600 active:text-white rounded-2xl text-3xl font-black text-content transition-all flex items-center justify-center shadow-sm"
                      >
                        {n}
                      </button>
@@ -814,7 +814,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
                    onClick={checkAnswer}
                    disabled={userInput === '' && subStep !== 'BRING_DOWN'}
                    className={`w-full py-6 rounded-3xl text-2xl font-black shadow-lg transition-all flex items-center justify-center gap-3 ${
-                     (userInput !== '' || subStep === 'BRING_DOWN') ? 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95' : 'bg-slate-100 text-slate-300'
+                     (userInput !== '' || subStep === 'BRING_DOWN') ? 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95' : 'bg-surface-3 text-faint'
                    }`}
                  >
                    {isMasterMode ? 'つぎへ' : (subStep === 'BRING_DOWN' ? 'つぎへ' : 'チェック')}
@@ -823,7 +823,7 @@ export const DivisionSimulator: React.FC<Props> = ({ problem, onBack, onFinish, 
             </>
           )}
 
-          <button onClick={onBack} className="flex items-center justify-center gap-2 text-slate-400 hover:text-slate-600 py-4 font-bold border-t border-slate-100 shrink-0">
+          <button onClick={onBack} className="flex items-center justify-center gap-2 text-faint hover:text-muted py-4 font-bold border-t border-line shrink-0">
             <RotateCcw size={20} /> {isFinished ? 'もう１問ちょうせん' : 'さいしょから'}
           </button>
         </div>

@@ -48,7 +48,7 @@ export default function App() {
   };
 
   return (
-    <div className="w-full h-screen overflow-hidden select-none" style={{ backgroundColor: 'var(--app-bg)' }}>
+    <div className="w-full h-screen overflow-hidden select-none bg-bg">
       <AnimatePresence mode="wait">
         {view.kind === 'HUB' && (
           <motion.div key="hub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full">

@@ -43,9 +43,9 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-50">
-      <div className="flex items-center justify-between p-6 bg-white border-b border-slate-100 shadow-sm sticky top-0 z-10">
-        <button onClick={onBack} className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors font-bold">
+    <div className="flex flex-col h-full bg-surface-2">
+      <div className="flex items-center justify-between p-6 bg-surface border-b border-line shadow-sm sticky top-0 z-10">
+        <button onClick={onBack} className="flex items-center gap-2 text-muted hover:text-content transition-colors font-bold">
           <ChevronLeft size={20} /><span>もどる</span>
         </button>
         <div className="flex items-center gap-2 text-blue-600">
@@ -67,17 +67,17 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
           {/* モジュール別 */}
           <div>
             <div className="flex items-center gap-2 px-2 mb-3">
-              <span className="text-slate-400 text-xs font-black uppercase tracking-widest">コースべつ クリア数</span>
+              <span className="text-faint text-xs font-black uppercase tracking-widest">コースべつ クリア数</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {MODULES.map((m) => {
                 const Icon = ICONS[m.icon] ?? Divide;
                 return (
-                  <div key={m.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0"><Icon size={20} /></div>
+                  <div key={m.id} className="bg-surface rounded-2xl border border-line shadow-sm p-4 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-surface-2 text-muted flex items-center justify-center shrink-0"><Icon size={20} /></div>
                     <div className="min-w-0">
-                      <div className="text-xs font-bold text-slate-500 truncate">{m.title}</div>
-                      <div className="text-xl font-black text-slate-800 tabular-nums">{moduleCounts[m.id]}</div>
+                      <div className="text-xs font-bold text-muted truncate">{m.title}</div>
+                      <div className="text-xl font-black text-content tabular-nums">{moduleCounts[m.id]}</div>
                     </div>
                   </div>
                 );
@@ -89,18 +89,18 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
           <div>
             <div className="flex items-center gap-2 px-2 mb-3">
               <AwardIcon size={16} className="text-amber-400" />
-              <span className="text-slate-400 text-xs font-black uppercase tracking-widest">ごほうびバッジ（{earnedCount}/{badges.length}）</span>
+              <span className="text-faint text-xs font-black uppercase tracking-widest">ごほうびバッジ（{earnedCount}/{badges.length}）</span>
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
               {badges.map((b) => {
                 const Icon = ICONS[b.icon] ?? Star;
                 return (
-                  <div key={b.id} className={`rounded-2xl p-4 flex flex-col items-center text-center border ${b.earned ? 'bg-amber-50 border-amber-200' : 'bg-white border-slate-100 opacity-60'}`}>
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${b.earned ? 'bg-amber-400 text-white' : 'bg-slate-100 text-slate-300'}`}>
+                  <div key={b.id} className={`rounded-2xl p-4 flex flex-col items-center text-center border ${b.earned ? 'bg-amber-50 border-amber-200' : 'bg-surface border-line opacity-60'}`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${b.earned ? 'bg-amber-400 text-white' : 'bg-surface-3 text-faint'}`}>
                       {b.earned ? <Icon size={24} /> : <Lock size={20} />}
                     </div>
-                    <div className={`text-xs font-black ${b.earned ? 'text-amber-700' : 'text-slate-400'}`}>{b.title}</div>
-                    <div className="text-[10px] text-slate-400 font-bold mt-0.5">{b.desc}</div>
+                    <div className={`text-xs font-black ${b.earned ? 'text-amber-700' : 'text-faint'}`}>{b.title}</div>
+                    <div className="text-[10px] text-faint font-bold mt-0.5">{b.desc}</div>
                   </div>
                 );
               })}
@@ -110,28 +110,28 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
           {/* 履歴 */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 px-2">
-              <History size={16} className="text-slate-400" />
-              <span className="text-slate-400 text-xs font-black uppercase tracking-widest">これまでのきろく</span>
+              <History size={16} className="text-faint" />
+              <span className="text-faint text-xs font-black uppercase tracking-widest">これまでのきろく</span>
             </div>
             {logs.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200">
-                <Calendar className="mx-auto text-slate-300 mb-4" size={48} />
-                <p className="text-slate-500 font-bold">まだ きろくが ありません。やってみよう！</p>
+              <div className="text-center py-16 bg-surface rounded-3xl border border-dashed border-line">
+                <Calendar className="mx-auto text-faint mb-4" size={48} />
+                <p className="text-muted font-bold">まだ きろくが ありません。やってみよう！</p>
               </div>
             ) : (
               logs.slice(0, 50).map((log, idx) => (
                 <motion.div key={log.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(idx * 0.03, 0.5) }}
-                  className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between">
+                  className="bg-surface p-4 rounded-2xl shadow-sm border border-line flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${log.correct ? 'bg-emerald-50 text-emerald-500' : 'bg-slate-50 text-slate-400'}`}>
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${log.correct ? 'bg-emerald-50 text-emerald-500' : 'bg-surface-2 text-faint'}`}>
                       <CheckCircle2 size={20} />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-400 text-xs font-bold">{formatDate(log.ts)}</span>
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-black truncate">{moduleTitle(log.moduleId)}</span>
+                        <span className="text-faint text-xs font-bold">{formatDate(log.ts)}</span>
+                        <span className="px-2 py-0.5 bg-surface-3 text-muted rounded text-[10px] font-black truncate">{moduleTitle(log.moduleId)}</span>
                       </div>
-                      <div className="text-lg font-black text-slate-800 truncate">{log.label}</div>
+                      <div className="text-lg font-black text-content truncate">{log.label}</div>
                     </div>
                   </div>
                   {log.correct && (
