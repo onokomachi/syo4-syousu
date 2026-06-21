@@ -37,7 +37,7 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
   const startCollect = (lv: CollectLevel) => { setActivity('collect'); setCollectLevel(lv); setCollect(generateCollect(lv)); setPhase('SIM'); };
   const startScale = (lv: ScaleLevel) => { setActivity('scale'); setScaleLevel(lv); setScale(generateScale(lv)); setPhase('SIM'); };
 
-  const getMastery = useProgressStore((s) => s.getMastery);
+  const getMasteryStreak = useProgressStore((s) => s.getMasteryStreak);
 
   if (phase === 'SETUP') {
     const Group: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({ icon, title, children }) => (
@@ -55,17 +55,17 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
           <h1 className="text-3xl font-black text-content text-center mb-6">位取りラボ</h1>
           <Group icon={<LayoutGrid size={20} />} title="数をつくる">
             {COMPOSE_LEVELS.map((lv) => (
-              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMastery(`compose-${lv.id}`)} onClick={() => startCompose(lv.id)} accentBorder="hover:border-rose-400" />
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`compose-${lv.id}`)} onClick={() => startCompose(lv.id)} accentBorder="hover:border-rose-400" />
             ))}
           </Group>
           <Group icon={<Boxes size={20} />} title="あつめた数">
             {COLLECT_LEVELS.map((lv) => (
-              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMastery(`collect-${lv.id}`)} onClick={() => startCollect(lv.id)} accentBorder="hover:border-rose-400" />
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`collect-${lv.id}`)} onClick={() => startCollect(lv.id)} accentBorder="hover:border-rose-400" />
             ))}
           </Group>
           <Group icon={<ArrowLeftRight size={20} />} title="10倍・10分の1">
             {SCALE_LEVELS.map((lv) => (
-              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMastery(`scale-${lv.id}`)} onClick={() => startScale(lv.id)} accentBorder="hover:border-rose-400" />
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`scale-${lv.id}`)} onClick={() => startScale(lv.id)} accentBorder="hover:border-rose-400" />
             ))}
           </Group>
         </div>

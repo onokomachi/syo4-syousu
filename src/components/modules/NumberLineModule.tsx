@@ -10,19 +10,21 @@ import { ChevronLeft, RotateCcw, Lightbulb, Ruler, Scale } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AppShell } from '../shared/AppShell';
 import { SpeakButton } from '../shared/SpeakButton';
+import { AnswerEntry } from '../shared/AnswerEntry';
 import {
   COMPARE_LEVELS, CompareLevel, ComparePair, generateCompare, relation,
   LINE_LEVELS, LineLevel, LineProblem, generateLine, lineTicks,
 } from '../../lib/numberLine';
 import { useProgressStore } from '../../store/progressStore';
 import { LevelCard } from '../ui/primitives';
+import { Eye } from 'lucide-react';
 import { playClear, playSoftTry } from '../../lib/sound';
 import { useAdaptive } from '../../lib/useAdaptive';
 import { AdaptiveBar } from '../shared/AdaptiveBar';
 import { Wand2 } from 'lucide-react';
 
 interface Props { onExit: () => void; }
-type Activity = 'compare' | 'line';
+type Activity = 'compare' | 'line' | 'line-read';
 
 export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const [phase, setPhase] = useState<'SETUP' | 'SIM'>('SETUP');
@@ -30,16 +32,19 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const [mode, setMode] = useState<'fixed' | 'adaptive'>('fixed');
   const [compareLevel, setCompareLevel] = useState<CompareLevel>('compare-tenths');
   const [lineLevel, setLineLevel] = useState<LineLevel>('line-tenths');
+  const [readLevel, setReadLevel] = useState<LineLevel>('line-tenths');
   const [pair, setPair] = useState<ComparePair | null>(null);
   const [lineProblem, setLineProblem] = useState<LineProblem | null>(null);
+  const [readProblem, setReadProblem] = useState<LineProblem | null>(null);
   const compareAdaptive = useAdaptive(COMPARE_LEVELS.map((l) => l.id), 'compare');
   const lineAdaptive = useAdaptive(LINE_LEVELS.map((l) => l.id), 'line');
   const effCompareLevel = mode === 'adaptive' ? compareAdaptive.level : compareLevel;
   const effLineLevel = mode === 'adaptive' ? lineAdaptive.level : lineLevel;
-  const getMastery = useProgressStore((s) => s.getMastery);
+  const getMasteryStreak = useProgressStore((s) => s.getMasteryStreak);
 
   const startCompare = (lv: CompareLevel) => { setActivity('compare'); setMode('fixed'); setCompareLevel(lv); setPair(generateCompare(lv)); setPhase('SIM'); };
   const startLine = (lv: LineLevel) => { setActivity('line'); setMode('fixed'); setLineLevel(lv); setLineProblem(generateLine(lv)); setPhase('SIM'); };
+  const startRead = (lv: LineLevel) => { setActivity('line-read'); setMode('fixed'); setReadLevel(lv); setReadProblem(generateLine(lv)); setPhase('SIM'); };
   const startCompareAdaptive = () => { setActivity('compare'); setMode('adaptive'); setPair(generateCompare(compareAdaptive.level)); setPhase('SIM'); };
   const startLineAdaptive = () => { setActivity('line'); setMode('adaptive'); setLineProblem(generateLine(lineAdaptive.level)); setPhase('SIM'); };
 
@@ -63,7 +68,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
                   key={lv.id}
                   label={lv.label}
                   desc={lv.description}
-                  mastery={getMastery(`compare-${lv.id}`)}
+                  mastery={getMasteryStreak(`compare-${lv.id}`)}
                   onClick={() => startCompare(lv.id)}
                   accentBorder="hover:border-amber-400"
                 />
@@ -82,8 +87,24 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
                   key={lv.id}
                   label={lv.label}
                   desc={lv.description}
-                  mastery={getMastery(`line-${lv.id}`)}
+                  mastery={getMasteryStreak(`line-${lv.id}`)}
                   onClick={() => startLine(lv.id)}
+                  accentBorder="hover:border-amber-400"
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-center gap-2 mb-3 text-amber-600"><Eye size={20} /><span className="font-black">数直線を よむ（数を こたえる）</span></div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {LINE_LEVELS.map((lv) => (
+                <LevelCard
+                  key={lv.id}
+                  label={lv.label}
+                  desc="めもりの 数を よみとろう"
+                  mastery={getMasteryStreak(`line-read-${lv.id}`)}
+                  onClick={() => startRead(lv.id)}
                   accentBorder="hover:border-amber-400"
                 />
               ))}
@@ -97,7 +118,8 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const adaptiveState = activity === 'compare' ? compareAdaptive : lineAdaptive;
   const subtitle = mode === 'adaptive' ? 'おまかせ'
     : activity === 'compare' ? COMPARE_LEVELS.find((l) => l.id === compareLevel)?.label
-      : LINE_LEVELS.find((l) => l.id === lineLevel)?.label;
+      : activity === 'line-read' ? `よむ・${LINE_LEVELS.find((l) => l.id === readLevel)?.label ?? ''}`
+        : LINE_LEVELS.find((l) => l.id === lineLevel)?.label;
 
   return (
     <AppShell title="数直線・大小くらべ" subtitle={subtitle} onBack={() => setPhase('SETUP')}>
@@ -111,6 +133,9 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
           )}
           {activity === 'line' && lineProblem && (
             <LineActivity key={lineProblem.targetStr + lineProblem.max} problem={lineProblem} level={effLineLevel} onNext={() => setLineProblem(generateLine(effLineLevel))} onResult={mode === 'adaptive' ? lineAdaptive.onResult : undefined} />
+          )}
+          {activity === 'line-read' && readProblem && (
+            <LineReadActivity key={readProblem.targetStr + readProblem.max} problem={readProblem} level={readLevel} onNext={() => setReadProblem(generateLine(readLevel))} />
           )}
         </div>
       </div>
@@ -341,6 +366,73 @@ const LineActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: (
             <div className="text-center mt-4">
               <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl">
                 せいかい！ {targetStr} は ここだね。
+              </div>
+              <div>
+                <button onClick={onNext} className="mt-6 px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ===================== 数直線をよむ（数を答える） ===================== */
+
+const LineReadActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+  const { target, targetStr, min, max, step, majorEvery } = problem;
+  const [solved, setSolved] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [hint, setHint] = useState<string | null>(null);
+  const recordResult = useProgressStore((s) => s.recordResult);
+
+  const submit = (v: string) => {
+    if (solved) return;
+    if (Math.abs(Number(v) - target) < 1e-9) {
+      setSolved(true);
+      playClear();
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      recordResult({ moduleId: 'number-line', skillId: `line-read-${level}`, label: `${targetStr} をよむ`, correct: mistakes === 0 });
+    } else {
+      playSoftTry();
+      setMistakes((m) => m + 1);
+      setHint(`◆の ところの めもりを よく見よう。${min} と ${max} の あいだだよ。`);
+    }
+  };
+
+  return (
+    <div className="h-full overflow-y-auto p-4 md:p-10">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-8 md:p-12">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <h2 className="text-2xl font-black text-content">◆の めもりは いくつ？</h2>
+            <SpeakButton text="ダイヤの ところの めもりは いくつかな。数を こたえよう" />
+          </div>
+          <p className="text-center text-muted font-bold mb-8">数直線を よんで キーパッドで こたえてね</p>
+
+          <div className="px-2 md:px-6 py-4">
+            <NumberLine min={min} max={max} step={step} majorEvery={majorEvery}
+              marks={[{ value: target, label: solved ? targetStr : '◆', color: solved ? '#10b981' : '#f59e0b' }]}
+            />
+          </div>
+
+          {!solved && hint && (
+            <div className="mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2 justify-center">
+              <Lightbulb className="text-amber-500 shrink-0" size={20} />
+              <p className="text-muted font-bold">{hint}</p>
+              <SpeakButton text={hint} />
+            </div>
+          )}
+
+          {!solved ? (
+            <div className="mt-6">
+              <AnswerEntry onSubmit={submit} allowDecimal accentText="text-amber-600" />
+            </div>
+          ) : (
+            <div className="text-center mt-4">
+              <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl">
+                せいかい！ ◆は {targetStr} だね。
               </div>
               <div>
                 <button onClick={onNext} className="mt-6 px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button>

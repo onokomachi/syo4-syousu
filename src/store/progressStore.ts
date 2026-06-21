@@ -27,6 +27,7 @@ export interface ResultRecord {
 export interface SkillMastery {
   attempts: number;
   corrects: number;
+  perfectStreak?: number; // 連続ノーミス数（熟達バー表示用。ミスで0にリセット）
 }
 
 interface ProgressState {
@@ -37,6 +38,7 @@ interface ProgressState {
   dailyGoal: number;
   recordResult: (rec: Omit<ResultRecord, 'id' | 'ts'>) => void;
   getMastery: (skillId: string) => number; // 0..1（試行なしは 0）
+  getMasteryStreak: (skillId: string) => number; // 0..1（連続ノーミス/5。熟達バー表示用）
   getModuleCount: (moduleId: ModuleId) => number;
   getTodayCount: () => number; // きょう 正解した数
   setDailyGoal: (n: number) => void;
@@ -61,12 +63,14 @@ export const useProgressStore = create<ProgressState>()(
           };
           const logs = [entry, ...state.logs].slice(0, 200);
 
-          const prev = state.mastery[rec.skillId] ?? { attempts: 0, corrects: 0 };
+          const prev = state.mastery[rec.skillId] ?? { attempts: 0, corrects: 0, perfectStreak: 0 };
           const mastery = {
             ...state.mastery,
             [rec.skillId]: {
               attempts: prev.attempts + 1,
               corrects: prev.corrects + (rec.correct ? 1 : 0),
+              // 連続ノーミス：正解で +1（最大5）、ミスありの完答で 0 にリセット
+              perfectStreak: rec.correct ? Math.min((prev.perfectStreak ?? 0) + 1, 5) : 0,
             },
           };
 
@@ -81,6 +85,11 @@ export const useProgressStore = create<ProgressState>()(
         const m = get().mastery[skillId];
         if (!m || m.attempts === 0) return 0;
         return m.corrects / m.attempts;
+      },
+
+      getMasteryStreak: (skillId) => {
+        const m = get().mastery[skillId];
+        return Math.min((m?.perfectStreak ?? 0) / 5, 1);
       },
 
       getModuleCount: (moduleId) =>
