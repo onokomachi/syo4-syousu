@@ -18,7 +18,6 @@ function skillToModule(skillId: string): ModuleId | null {
   if (skillId.startsWith('collect-')) return 'place-value';
   if (skillId.startsWith('scale-')) return 'place-value';
   if (skillId.startsWith('wp-')) return 'word-problem';
-  if (skillId.startsWith('division-')) return 'division';
   if (skillId.startsWith('judge-') || skillId.startsWith('fix-')) return 'error-hunter';
   return null;
 }

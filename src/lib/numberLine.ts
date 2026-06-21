@@ -62,11 +62,12 @@ export function generateCompare(level: CompareLevel): ComparePair {
 
 /* ===================== 数直線 ===================== */
 
-export type LineLevel = 'line-tenths' | 'line-0to10';
+export type LineLevel = 'line-tenths' | 'line-0to10' | 'line-hundredths';
 
 export const LINE_LEVELS: { id: LineLevel; label: string; description: string }[] = [
   { id: 'line-tenths', label: '数直線 ①', description: '0〜1（0.1ずつ）に小数をおく' },
   { id: 'line-0to10', label: '数直線 ②', description: '0〜10（0.5ずつ）に小数をおく' },
+  { id: 'line-hundredths', label: '数直線 ③', description: '3.54 など（0.01ずつ・拡大）' },
 ];
 
 export interface LineProblem {
@@ -87,6 +88,16 @@ export function generateLine(level: LineLevel): LineProblem {
     const k = rnd(1, 9);
     const target = k / 10;
     return { target, targetStr: `0.${k}`, min: 0, max: 1, step: 0.1, majorEvery: 5 };
+  }
+  if (level === 'line-hundredths') {
+    // 小数第2位（例 3.54）。答えに必要な 0.1 区間だけ 0.01 刻みで拡大表示。
+    const whole = rnd(1, 6);
+    const tenth = rnd(0, 9);
+    let hund = rnd(1, 9); // 末尾0でない＝第2位まで意味がある
+    const target = Math.round((whole + tenth / 10 + hund / 100) * 100) / 100;
+    const min = Math.round((whole + tenth / 10) * 100) / 100;
+    const max = Math.round((min + 0.1) * 100) / 100;
+    return { target, targetStr: target.toFixed(2), min, max, step: 0.01, majorEvery: 10 };
   }
   // 0〜10、0.5 ずつ。整数や .5 を出題
   const j = rnd(1, 19);

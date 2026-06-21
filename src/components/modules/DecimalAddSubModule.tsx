@@ -41,7 +41,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   const [problem, setProblem] = useState<AddSubProblem | null>(null);
   const adaptive = useAdaptive(ADDSUB_LEVELS.map((l) => l.id), 'addsub');
   const effectiveLevel = mode === 'adaptive' ? adaptive.level : level;
-  const getMastery = useProgressStore((s) => s.getMastery);
+  const getMasteryStreak = useProgressStore((s) => s.getMasteryStreak);
 
   const start = (lv: AddSubLevel) => {
     setMode('fixed');
@@ -82,7 +82,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
                 key={lv.id}
                 label={lv.label}
                 desc={lv.description}
-                mastery={getMastery(`addsub-${lv.id}`)}
+                mastery={getMasteryStreak(`addsub-${lv.id}`)}
                 onClick={() => start(lv.id)}
                 accentBorder="hover:border-emerald-400"
               />

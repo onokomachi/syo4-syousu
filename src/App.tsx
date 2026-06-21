@@ -6,7 +6,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Hub } from './components/Hub';
-import { DivisionModule } from './components/modules/DivisionModule';
 import { DecimalAddSubModule } from './components/modules/DecimalAddSubModule';
 import { DecimalMulDivModule } from './components/modules/DecimalMulDivModule';
 import { NumberLineModule } from './components/modules/NumberLineModule';
@@ -29,8 +28,6 @@ export default function App() {
 
   const renderModule = (id: ModuleId) => {
     switch (id) {
-      case 'division':
-        return <DivisionModule onExit={goHub} />;
       case 'decimal-addsub':
         return <DecimalAddSubModule onExit={goHub} />;
       case 'decimal-muldiv':
