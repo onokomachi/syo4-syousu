@@ -14,9 +14,12 @@ function skillToModule(skillId: string): ModuleId | null {
   if (skillId.startsWith('div-')) return 'decimal-muldiv';
   if (skillId.startsWith('compare-')) return 'number-line';
   if (skillId.startsWith('line-')) return 'number-line';
+  if (skillId.startsWith('order-')) return 'number-line';
   if (skillId.startsWith('compose-')) return 'place-value';
   if (skillId.startsWith('collect-')) return 'place-value';
   if (skillId.startsWith('scale-')) return 'place-value';
+  if (skillId.startsWith('unit-')) return 'place-value';
+  if (skillId.startsWith('placeid-')) return 'place-value';
   if (skillId.startsWith('wp-')) return 'word-problem';
   if (skillId.startsWith('judge-') || skillId.startsWith('fix-')) return 'error-hunter';
   return null;

@@ -14,17 +14,18 @@ import { AnswerEntry } from '../shared/AnswerEntry';
 import {
   COMPARE_LEVELS, CompareLevel, ComparePair, generateCompare, relation,
   LINE_LEVELS, LineLevel, LineProblem, generateLine, lineTicks,
+  ORDER_LEVELS, OrderLevel, OrderProblem, generateOrder,
 } from '../../lib/numberLine';
 import { useProgressStore } from '../../store/progressStore';
 import { LevelCard } from '../ui/primitives';
-import { Eye } from 'lucide-react';
-import { playClear, playSoftTry } from '../../lib/sound';
+import { Eye, ArrowDownUp, X } from 'lucide-react';
+import { playClear, playSoftTry, playCorrect } from '../../lib/sound';
 import { useAdaptive } from '../../lib/useAdaptive';
 import { AdaptiveBar } from '../shared/AdaptiveBar';
 import { Wand2 } from 'lucide-react';
 
 interface Props { onExit: () => void; }
-type Activity = 'compare' | 'line' | 'line-read';
+type Activity = 'compare' | 'line' | 'line-read' | 'order';
 
 export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const [phase, setPhase] = useState<'SETUP' | 'SIM'>('SETUP');
@@ -33,9 +34,11 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const [compareLevel, setCompareLevel] = useState<CompareLevel>('compare-tenths');
   const [lineLevel, setLineLevel] = useState<LineLevel>('line-tenths');
   const [readLevel, setReadLevel] = useState<LineLevel>('line-tenths');
+  const [orderLevel, setOrderLevel] = useState<OrderLevel>('order-3');
   const [pair, setPair] = useState<ComparePair | null>(null);
   const [lineProblem, setLineProblem] = useState<LineProblem | null>(null);
   const [readProblem, setReadProblem] = useState<LineProblem | null>(null);
+  const [orderProblem, setOrderProblem] = useState<OrderProblem | null>(null);
   const compareAdaptive = useAdaptive(COMPARE_LEVELS.map((l) => l.id), 'compare');
   const lineAdaptive = useAdaptive(LINE_LEVELS.map((l) => l.id), 'line');
   const effCompareLevel = mode === 'adaptive' ? compareAdaptive.level : compareLevel;
@@ -45,6 +48,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const startCompare = (lv: CompareLevel) => { setActivity('compare'); setMode('fixed'); setCompareLevel(lv); setPair(generateCompare(lv)); setPhase('SIM'); };
   const startLine = (lv: LineLevel) => { setActivity('line'); setMode('fixed'); setLineLevel(lv); setLineProblem(generateLine(lv)); setPhase('SIM'); };
   const startRead = (lv: LineLevel) => { setActivity('line-read'); setMode('fixed'); setReadLevel(lv); setReadProblem(generateLine(lv)); setPhase('SIM'); };
+  const startOrder = (lv: OrderLevel) => { setActivity('order'); setMode('fixed'); setOrderLevel(lv); setOrderProblem(generateOrder(lv)); setPhase('SIM'); };
   const startCompareAdaptive = () => { setActivity('compare'); setMode('adaptive'); setPair(generateCompare(compareAdaptive.level)); setPhase('SIM'); };
   const startLineAdaptive = () => { setActivity('line'); setMode('adaptive'); setLineProblem(generateLine(lineAdaptive.level)); setPhase('SIM'); };
 
@@ -110,6 +114,22 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
               ))}
             </div>
           </div>
+
+          <div className="mt-6">
+            <div className="flex items-center gap-2 mb-3 text-amber-600"><ArrowDownUp size={20} /><span className="font-black">ならべかえ（大小の順）</span></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {ORDER_LEVELS.map((lv) => (
+                <LevelCard
+                  key={lv.id}
+                  label={lv.label}
+                  desc={lv.description}
+                  mastery={getMasteryStreak(`order-${lv.id}`)}
+                  onClick={() => startOrder(lv.id)}
+                  accentBorder="hover:border-amber-400"
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -119,7 +139,8 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const subtitle = mode === 'adaptive' ? 'おまかせ'
     : activity === 'compare' ? COMPARE_LEVELS.find((l) => l.id === compareLevel)?.label
       : activity === 'line-read' ? `よむ・${LINE_LEVELS.find((l) => l.id === readLevel)?.label ?? ''}`
-        : LINE_LEVELS.find((l) => l.id === lineLevel)?.label;
+        : activity === 'order' ? ORDER_LEVELS.find((l) => l.id === orderLevel)?.label
+          : LINE_LEVELS.find((l) => l.id === lineLevel)?.label;
 
   return (
     <AppShell title="数直線・大小くらべ" subtitle={subtitle} onBack={() => setPhase('SETUP')}>
@@ -136,6 +157,9 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
           )}
           {activity === 'line-read' && readProblem && (
             <LineReadActivity key={readProblem.targetStr + readProblem.max} problem={readProblem} level={readLevel} onNext={() => setReadProblem(generateLine(readLevel))} />
+          )}
+          {activity === 'order' && orderProblem && (
+            <OrderActivity key={orderProblem.items.join()} problem={orderProblem} level={orderLevel} onNext={() => setOrderProblem(generateOrder(orderLevel))} />
           )}
         </div>
       </div>
@@ -438,6 +462,109 @@ const LineReadActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNex
                 <button onClick={onNext} className="mt-6 px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button>
               </div>
             </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ===================== ならべかえ ===================== */
+
+const OrderActivity: React.FC<{ problem: OrderProblem; level: OrderLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+  const { items, dir, sorted } = problem;
+  const [placed, setPlaced] = useState<string[]>([]);
+  const [solved, setSolved] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [hint, setHint] = useState<string | null>(null);
+  const recordResult = useProgressStore((s) => s.recordResult);
+
+  const remaining = items.filter((it) => !placed.includes(it));
+  const dirLabel = dir === 'asc' ? '小さい順（左がいちばん小さい）' : '大きい順（左がいちばん大きい）';
+
+  const tap = (it: string) => {
+    if (solved) return;
+    if (it === sorted[placed.length]) {
+      const next = [...placed, it];
+      setPlaced(next);
+      setHint(null);
+      if (next.length === sorted.length) {
+        setSolved(true);
+        playClear();
+        confetti({ particleCount: 130, spread: 70, origin: { y: 0.6 } });
+        recordResult({ moduleId: 'number-line', skillId: `order-${level}`, label: `${dirLabel}にならべる`, correct: mistakes === 0 });
+      } else {
+        playCorrect();
+      }
+    } else {
+      playSoftTry();
+      setMistakes((m) => m + 1);
+      setHint(dir === 'asc'
+        ? 'いちばん 小さい数から えらぼう。けたの 長さでなく、上の位から くらべてね。'
+        : 'いちばん 大きい数から えらぼう。けたの 長さでなく、上の位から くらべてね。');
+    }
+  };
+
+  const undo = () => {
+    if (solved || placed.length === 0) return;
+    setPlaced(placed.slice(0, -1));
+    setHint(null);
+  };
+
+  return (
+    <div className="h-full overflow-y-auto p-4 md:p-10">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <h2 className="text-2xl font-black text-content">{dirLabel}に ならべよう</h2>
+            <SpeakButton text={`${dirLabel}に ならべよう`} />
+          </div>
+          <p className="text-center text-muted font-bold mb-6">小さい順／大きい順に なるよう カードを 左から タップ</p>
+
+          {/* 並べた結果 */}
+          <div className="flex flex-wrap items-center justify-center gap-2 min-h-[72px] mb-6 p-3 rounded-2xl bg-surface-2 border border-line">
+            {placed.length === 0 && <span className="text-faint font-bold">ここに ならびます</span>}
+            {placed.map((it, i) => (
+              <React.Fragment key={it}>
+                <span className="px-4 py-2 rounded-xl bg-amber-500 text-white font-black text-2xl tabular-nums shadow">{it}</span>
+                {i < placed.length - 1 && <span className="text-muted font-black">›</span>}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {!solved && (
+            <div className="flex flex-wrap items-center justify-center gap-3 mb-4">
+              {remaining.map((it) => (
+                <button key={it} onClick={() => tap(it)} className="px-5 py-4 rounded-2xl bg-surface border-2 border-line hover:border-amber-400 text-content font-black text-3xl tabular-nums shadow-sm transition-all active:scale-95">
+                  {it}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!solved && hint && (
+            <div className="mt-2 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2 justify-center">
+              <Lightbulb className="text-amber-500 shrink-0" size={20} />
+              <p className="text-muted font-bold">{hint}</p>
+              <SpeakButton text={hint} />
+            </div>
+          )}
+
+          {solved ? (
+            <div className="text-center mt-4">
+              <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl">せいかい！ ぜんぶ ならべられたね。</div>
+              <div>
+                <button onClick={onNext} className="mt-6 px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button>
+              </div>
+            </div>
+          ) : (
+            placed.length > 0 && (
+              <div className="text-center">
+                <button onClick={undo} className="inline-flex items-center gap-2 text-muted hover:text-content font-bold px-4 py-2 rounded-xl hover:bg-surface-3">
+                  <X size={18} /> ひとつ もどす
+                </button>
+              </div>
+            )
           )}
         </div>
       </div>

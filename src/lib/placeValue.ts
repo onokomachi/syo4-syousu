@@ -74,8 +74,13 @@ export function generateCollect(level: CollectLevel): CollectProblem {
   let count: number;
   if (level === 'collect-basic') {
     count = rnd(2, 9);
+  } else if (u.label === '0.1') {
+    count = rnd(11, 39); // くり上がる量
+  } else if (u.label === '0.01') {
+    count = rnd(11, 250);
   } else {
-    count = rnd(11, u.label === '0.1' ? 39 : 250); // くり上がる量
+    // 0.001 は大きな個数も（例: 0.001 を 3776 こ → 3.776）
+    count = rnd(11, 9999);
   }
   const value = fromMilli(count * u.milli);
   const direction: 'count' | 'value' = Math.random() < 0.5 ? 'count' : 'value';
@@ -89,29 +94,164 @@ export function generateCollect(level: CollectLevel): CollectProblem {
   };
 }
 
-/* ---------- 10倍・1/10 ---------- */
-export type ScaleLevel = 'scale-10' | 'scale-tenth' | 'scale-mix';
+/* ---------- 10倍・1/10・100倍・1/100 ---------- */
+export type ScaleLevel = 'scale-10' | 'scale-tenth' | 'scale-100' | 'scale-mix';
 
 export const SCALE_LEVELS: { id: ScaleLevel; label: string; description: string }[] = [
   { id: 'scale-10', label: '10倍', description: '2.45 を 10倍すると？' },
   { id: 'scale-tenth', label: '10分の1', description: '2.45 の 1/10 は？' },
-  { id: 'scale-mix', label: 'ミックス', description: '10倍・1/10 がまざる' },
+  { id: 'scale-100', label: '100倍・1/100', description: '377.6 を 1/100 にすると？' },
+  { id: 'scale-mix', label: 'ミックス', description: '10倍・1/10・100倍・1/100' },
 ];
+
+export type ScaleOp = '×10' | '÷10' | '×100' | '÷100';
 
 export interface ScaleProblem {
   value: number;
-  op: '×10' | '÷10';
+  op: ScaleOp;
   answer: string;
+}
+
+const SCALE_LABELS: Record<ScaleOp, string> = {
+  '×10': '10倍した数',
+  '÷10': '1/10にした数',
+  '×100': '100倍した数',
+  '÷100': '1/100にした数',
+};
+
+export function scaleOpLabel(op: ScaleOp): string {
+  return SCALE_LABELS[op];
 }
 
 export function generateScale(level: ScaleLevel): ScaleProblem {
   const decimals = rnd(1, 2);
   const milli = decimals === 1 ? rnd(11, 98) * 100 : rnd(105, 989) * 10;
   const value = fromMilli(milli);
-  let op: '×10' | '÷10';
+  let op: ScaleOp;
   if (level === 'scale-10') op = '×10';
   else if (level === 'scale-tenth') op = '÷10';
-  else op = Math.random() < 0.5 ? '×10' : '÷10';
-  const ansMilli = op === '×10' ? milli * 10 : milli / 10;
+  else if (level === 'scale-100') op = Math.random() < 0.5 ? '×100' : '÷100';
+  else op = (['×10', '÷10', '×100', '÷100'] as ScaleOp[])[rnd(0, 3)];
+  const factor = op === '×10' ? 10 : op === '÷10' ? 1 / 10 : op === '×100' ? 100 : 1 / 100;
+  const ansMilli = milli * factor;
   return { value, op, answer: String(fromMilli(ansMilli)) };
+}
+
+/* ---------- 単位変換（長さ・重さ） ---------- */
+export type UnitLevel = 'unit-length' | 'unit-mass' | 'unit-mix';
+
+export const UNIT_LEVELS: { id: UnitLevel; label: string; description: string }[] = [
+  { id: 'unit-length', label: '長さの たんい', description: '5m28cm は 何 m？' },
+  { id: 'unit-mass', label: '重さの たんい', description: '673g は 何 kg？' },
+  { id: 'unit-mix', label: 'ミックス', description: '長さ・重さ がまざる' },
+];
+
+export interface UnitProblem {
+  promptStr: string; // 表示する問い（例: 5m28cm を m で）
+  promptSpeak: string; // 読み上げ
+  answer: string; // 入力させる小数（例: 5.28）
+  answerUnit: string; // m / kg
+}
+
+// 長さ：cm 単位の整数 → m の小数（1m=100cm）
+function genUnitLength(): UnitProblem {
+  // ときどき複合表記（5m28cm）、ときどき単一（80cm）
+  const compound = Math.random() < 0.6;
+  if (compound) {
+    const m = rnd(1, 9);
+    const cm = rnd(1, 99);
+    const totalCm = m * 100 + cm;
+    return {
+      promptStr: `${m}m${cm}cm`,
+      promptSpeak: `${m}メートル${cm}センチメートルは 何メートル`,
+      answer: String(fromMilli(totalCm * 10)),
+      answerUnit: 'm',
+    };
+  }
+  const cm = rnd(5, 95);
+  return {
+    promptStr: `${cm}cm`,
+    promptSpeak: `${cm}センチメートルは 何メートル`,
+    answer: String(fromMilli(cm * 10)),
+    answerUnit: 'm',
+  };
+}
+
+// 重さ：g 単位の整数 → kg の小数（1kg=1000g）
+function genUnitMass(): UnitProblem {
+  const compound = Math.random() < 0.5;
+  if (compound) {
+    const kg = rnd(1, 8);
+    const g = rnd(1, 999);
+    const totalG = kg * 1000 + g;
+    return {
+      promptStr: `${kg}kg${g}g`,
+      promptSpeak: `${kg}キログラム${g}グラムは 何キログラム`,
+      answer: String(fromMilli(totalG)),
+      answerUnit: 'kg',
+    };
+  }
+  const g = rnd(105, 985);
+  return {
+    promptStr: `${g}g`,
+    promptSpeak: `${g}グラムは 何キログラム`,
+    answer: String(fromMilli(g)),
+    answerUnit: 'kg',
+  };
+}
+
+export function generateUnit(level: UnitLevel): UnitProblem {
+  if (level === 'unit-length') return genUnitLength();
+  if (level === 'unit-mass') return genUnitMass();
+  return Math.random() < 0.5 ? genUnitLength() : genUnitMass();
+}
+
+/* ---------- ○の位の数字は？ ---------- */
+export type PlaceIdLevel = 'placeid-2' | 'placeid-3';
+
+export const PLACEID_LEVELS: { id: PlaceIdLevel; label: string; description: string }[] = [
+  { id: 'placeid-2', label: '位の数字 ①', description: '小数第二位まで（2.13）' },
+  { id: 'placeid-3', label: '位の数字 ②', description: '小数第三位まで（1.695）' },
+];
+
+export interface PlaceIdProblem {
+  valueStr: string; // 出題する数（例: 1.695）
+  place: number; // 0=一の位, -1=小数第一位 ...
+  placeLabel: string; // 「1/1000の位」など表示用
+  placeSpeak: string;
+  answer: string; // その位の数字
+}
+
+// place（0,-1,-2,-3...）に対する両表記
+function placeIdLabel(place: number): { label: string; speak: string } {
+  switch (place) {
+    case 0: return { label: '一の位', speak: 'いちのくらい' };
+    case -1: return { label: '小数第一位（1/10の位）', speak: 'しょうすうだいいちい、じゅうぶんのいちのくらい' };
+    case -2: return { label: '小数第二位（1/100の位）', speak: 'しょうすうだいにい、ひゃくぶんのいちのくらい' };
+    case -3: return { label: '小数第三位（1/1000の位）', speak: 'しょうすうだいさんい、せんぶんのいちのくらい' };
+    default: return { label: '', speak: '' };
+  }
+}
+
+export function generatePlaceId(level: PlaceIdLevel): PlaceIdProblem {
+  const decimals = level === 'placeid-2' ? 2 : 3;
+  const digits = [rnd(1, 9)];
+  for (let i = 1; i <= decimals; i++) digits.push(rnd(0, 9));
+  if (digits[decimals] === 0) digits[decimals] = rnd(1, 9);
+  let milli = digits[0] * 1000;
+  if (decimals >= 1) milli += digits[1] * 100;
+  if (decimals >= 2) milli += digits[2] * 10;
+  if (decimals >= 3) milli += digits[3];
+  const valueStr = fromMilli(milli).toFixed(decimals);
+  // 問う位を選ぶ（0 〜 -decimals）
+  const place = -rnd(0, decimals);
+  const idx = -place; // digits 配列のインデックス（0=一の位）
+  const { label, speak } = placeIdLabel(place);
+  return {
+    valueStr,
+    place,
+    placeLabel: label,
+    placeSpeak: speak,
+    answer: String(digits[idx]),
+  };
 }

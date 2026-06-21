@@ -105,6 +105,56 @@ export function generateLine(level: LineLevel): LineProblem {
   return { target, targetStr: fmt(target, 1), min: 0, max: 10, step: 0.5, majorEvery: 2 };
 }
 
+/* ===================== ならべかえ ===================== */
+
+export type OrderLevel = 'order-3' | 'order-5';
+
+export const ORDER_LEVELS: { id: OrderLevel; label: string; description: string }[] = [
+  { id: 'order-3', label: 'ならべかえ ①', description: '3つの小数を 順にならべる' },
+  { id: 'order-5', label: 'ならべかえ ②', description: '5つの小数を 順にならべる（100m走）' },
+];
+
+export interface OrderProblem {
+  items: string[]; // 提示順（シャッフル済み）
+  dir: 'asc' | 'desc'; // asc=小さい順, desc=大きい順
+  sorted: string[]; // 正解順
+}
+
+// 互いに紛らわしい（桁ちがい・近い値）小数を作る
+function makeOrderItems(count: number): string[] {
+  const set = new Set<string>();
+  const vals = new Set<number>();
+  let guard = 0;
+  while (set.size < count && guard++ < 200) {
+    // 1の位ありの2桁小数を中心に、ときどき末尾0や桁ちがいを混ぜる
+    const whole = rnd(0, 9);
+    const style = rnd(0, 2);
+    let str: string;
+    if (style === 0) str = `${whole}.${rnd(0, 9)}`; // 小数第一位
+    else if (style === 1) str = `${whole}.${rnd(0, 9)}${rnd(0, 9)}`; // 小数第二位
+    else str = `${whole}.${rnd(1, 9)}0`; // 末尾0（等しさの罠）
+    const v = Number(str);
+    if (vals.has(v)) continue; // 値が同じものは除外（順序を一意に）
+    vals.add(v);
+    set.add(str);
+  }
+  return [...set];
+}
+
+export function generateOrder(level: OrderLevel): OrderProblem {
+  const count = level === 'order-3' ? 3 : 5;
+  const items = makeOrderItems(count);
+  const dir: 'asc' | 'desc' = Math.random() < 0.5 ? 'asc' : 'desc';
+  const sorted = [...items].sort((a, b) => (dir === 'asc' ? Number(a) - Number(b) : Number(b) - Number(a)));
+  // 提示順は正解順と変えてシャッフル
+  let shuffled = [...items];
+  let g = 0;
+  do {
+    shuffled = [...items].sort(() => Math.random() - 0.5);
+  } while (shuffled.join() === sorted.join() && g++ < 10);
+  return { items: shuffled, dir, sorted };
+}
+
 /** 数直線の目盛り値の配列を作る（浮動小数点誤差に強い）。 */
 export function lineTicks(min: number, max: number, step: number): number[] {
   const ticks: number[] = [];
