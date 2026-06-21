@@ -15,6 +15,10 @@ import {
   LINE_LEVELS, LineLevel, LineProblem, generateLine, lineTicks,
 } from '../../lib/numberLine';
 import { useProgressStore } from '../../store/progressStore';
+import { playClear, playSoftTry } from '../../lib/sound';
+import { useAdaptive } from '../../lib/useAdaptive';
+import { AdaptiveBar } from '../shared/AdaptiveBar';
+import { Wand2 } from 'lucide-react';
 
 interface Props { onExit: () => void; }
 type Activity = 'compare' | 'line';
@@ -22,13 +26,20 @@ type Activity = 'compare' | 'line';
 export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const [phase, setPhase] = useState<'SETUP' | 'SIM'>('SETUP');
   const [activity, setActivity] = useState<Activity>('compare');
+  const [mode, setMode] = useState<'fixed' | 'adaptive'>('fixed');
   const [compareLevel, setCompareLevel] = useState<CompareLevel>('compare-tenths');
   const [lineLevel, setLineLevel] = useState<LineLevel>('line-tenths');
   const [pair, setPair] = useState<ComparePair | null>(null);
   const [lineProblem, setLineProblem] = useState<LineProblem | null>(null);
+  const compareAdaptive = useAdaptive(COMPARE_LEVELS.map((l) => l.id), 'compare');
+  const lineAdaptive = useAdaptive(LINE_LEVELS.map((l) => l.id), 'line');
+  const effCompareLevel = mode === 'adaptive' ? compareAdaptive.level : compareLevel;
+  const effLineLevel = mode === 'adaptive' ? lineAdaptive.level : lineLevel;
 
-  const startCompare = (lv: CompareLevel) => { setActivity('compare'); setCompareLevel(lv); setPair(generateCompare(lv)); setPhase('SIM'); };
-  const startLine = (lv: LineLevel) => { setActivity('line'); setLineLevel(lv); setLineProblem(generateLine(lv)); setPhase('SIM'); };
+  const startCompare = (lv: CompareLevel) => { setActivity('compare'); setMode('fixed'); setCompareLevel(lv); setPair(generateCompare(lv)); setPhase('SIM'); };
+  const startLine = (lv: LineLevel) => { setActivity('line'); setMode('fixed'); setLineLevel(lv); setLineProblem(generateLine(lv)); setPhase('SIM'); };
+  const startCompareAdaptive = () => { setActivity('compare'); setMode('adaptive'); setPair(generateCompare(compareAdaptive.level)); setPhase('SIM'); };
+  const startLineAdaptive = () => { setActivity('line'); setMode('adaptive'); setLineProblem(generateLine(lineAdaptive.level)); setPhase('SIM'); };
 
   if (phase === 'SETUP') {
     return (
@@ -41,6 +52,9 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
 
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3 text-amber-600"><Scale size={20} /><span className="font-black">大小くらべ</span></div>
+            <button onClick={startCompareAdaptive} className="w-full mb-3 p-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-amber-500 text-white shadow hover:shadow-lg text-left transition-all active:scale-[0.98] flex items-center gap-3">
+              <Wand2 size={24} /><div><div className="font-black">おまかせ（じどうレベル）</div><div className="text-sm text-white/80">むずかしさが かわるよ</div></div>
+            </button>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {COMPARE_LEVELS.map((lv) => (
                 <button key={lv.id} onClick={() => startCompare(lv.id)} className="p-5 rounded-3xl bg-white border-2 border-slate-100 hover:border-amber-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
@@ -53,6 +67,9 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
 
           <div>
             <div className="flex items-center gap-2 mb-3 text-amber-600"><Ruler size={20} /><span className="font-black">数直線におく</span></div>
+            <button onClick={startLineAdaptive} className="w-full mb-3 p-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-amber-500 text-white shadow hover:shadow-lg text-left transition-all active:scale-[0.98] flex items-center gap-3">
+              <Wand2 size={24} /><div><div className="font-black">おまかせ（じどうレベル）</div><div className="text-sm text-white/80">むずかしさが かわるよ</div></div>
+            </button>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {LINE_LEVELS.map((lv) => (
                 <button key={lv.id} onClick={() => startLine(lv.id)} className="p-5 rounded-3xl bg-white border-2 border-slate-100 hover:border-amber-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
@@ -67,14 +84,26 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
     );
   }
 
+  const adaptiveState = activity === 'compare' ? compareAdaptive : lineAdaptive;
+  const subtitle = mode === 'adaptive' ? 'おまかせ'
+    : activity === 'compare' ? COMPARE_LEVELS.find((l) => l.id === compareLevel)?.label
+      : LINE_LEVELS.find((l) => l.id === lineLevel)?.label;
+
   return (
-    <AppShell title="数直線・大小くらべ" subtitle={activity === 'compare' ? COMPARE_LEVELS.find((l) => l.id === compareLevel)?.label : LINE_LEVELS.find((l) => l.id === lineLevel)?.label} onBack={() => setPhase('SETUP')}>
-      {activity === 'compare' && pair && (
-        <CompareActivity key={`${pair.aStr}-${pair.bStr}`} pair={pair} level={compareLevel} onNext={() => setPair(generateCompare(compareLevel))} />
-      )}
-      {activity === 'line' && lineProblem && (
-        <LineActivity key={lineProblem.targetStr + lineProblem.max} problem={lineProblem} level={lineLevel} onNext={() => setLineProblem(generateLine(lineLevel))} />
-      )}
+    <AppShell title="数直線・大小くらべ" subtitle={subtitle} onBack={() => setPhase('SETUP')}>
+      <div className="flex flex-col h-full">
+        {mode === 'adaptive' && (
+          <AdaptiveBar index={adaptiveState.index} total={adaptiveState.total} leveledUp={adaptiveState.leveledUp} onClearLevelUp={adaptiveState.clearLevelUp} />
+        )}
+        <div className="flex-1 min-h-0 overflow-y-auto">
+          {activity === 'compare' && pair && (
+            <CompareActivity key={`${pair.aStr}-${pair.bStr}`} pair={pair} level={effCompareLevel} onNext={() => setPair(generateCompare(effCompareLevel))} onResult={mode === 'adaptive' ? compareAdaptive.onResult : undefined} />
+          )}
+          {activity === 'line' && lineProblem && (
+            <LineActivity key={lineProblem.targetStr + lineProblem.max} problem={lineProblem} level={effLineLevel} onNext={() => setLineProblem(generateLine(effLineLevel))} onResult={mode === 'adaptive' ? lineAdaptive.onResult : undefined} />
+          )}
+        </div>
+      </div>
     </AppShell>
   );
 };
@@ -141,7 +170,7 @@ const NumberLine: React.FC<NumberLineProps> = ({ min, max, step, majorEvery, mar
 
 const REL_LABEL: Record<string, string> = { '>': 'A は B より 大きい', '<': 'A は B より 小さい', '=': 'A と B は 等しい' };
 
-const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel; onNext: () => void }> = ({ pair, level, onNext }) => {
+const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ pair, level, onNext, onResult }) => {
   const correct = relation(pair.aStr, pair.bStr);
   const a = Number(pair.aStr), b = Number(pair.bStr);
   const [picked, setPicked] = useState<'>' | '<' | '=' | null>(null);
@@ -163,9 +192,12 @@ const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel; onNext
     setPicked(r);
     if (r === correct) {
       setSolved(true);
+      playClear();
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'number-line', skillId: `compare-${level}`, label: `${pair.aStr} ${correct} ${pair.bStr}`, correct: mistakes === 0 });
+      onResult?.(mistakes === 0);
     } else {
+      playSoftTry();
       setMistakes((m) => m + 1);
     }
   };
@@ -236,7 +268,7 @@ const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel; onNext
 
 /* ===================== 数直線におく ===================== */
 
-const LineActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+const LineActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, level, onNext, onResult }) => {
   const { target, targetStr, min, max, step, majorEvery } = problem;
   const [picked, setPicked] = useState<number | null>(null);
   const [solved, setSolved] = useState(false);
@@ -249,9 +281,12 @@ const LineActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: (
     setPicked(v);
     if (Math.abs(v - target) < 1e-9) {
       setSolved(true);
+      playClear();
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'number-line', skillId: `line-${level}`, label: `${targetStr} を数直線に`, correct: mistakes === 0 });
+      onResult?.(mistakes === 0);
     } else {
+      playSoftTry();
       setMistakes((m) => m + 1);
       const mid = (min + max) / 2;
       setHint(target < mid ? `まんなか(${Number(mid.toFixed(1))})より 左をさがそう。` : `まんなか(${Number(mid.toFixed(1))})より 右をさがそう。`);

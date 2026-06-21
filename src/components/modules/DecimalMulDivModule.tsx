@@ -16,6 +16,10 @@ import {
   DIV_LEVELS, DivLevel, DivProblem, buildDiv, generateDiv,
 } from '../../lib/decimalMulDiv';
 import { useProgressStore } from '../../store/progressStore';
+import { playClear, playCorrect, playSoftTry } from '../../lib/sound';
+import { useAdaptive } from '../../lib/useAdaptive';
+import { AdaptiveBar } from '../shared/AdaptiveBar';
+import { Wand2 } from 'lucide-react';
 
 interface Props {
   onExit: () => void;
@@ -26,16 +30,28 @@ type Op = 'mul' | 'div';
 export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
   const [phase, setPhase] = useState<'SETUP' | 'SIM'>('SETUP');
   const [op, setOp] = useState<Op>('mul');
+  const [mode, setMode] = useState<'fixed' | 'adaptive'>('fixed');
   const [mulLevel, setMulLevel] = useState<MulLevel>('mul-tenths');
   const [divLevel, setDivLevel] = useState<DivLevel>('div-basic');
   const [mulProblem, setMulProblem] = useState<MulProblem | null>(null);
   const [divProblem, setDivProblem] = useState<DivProblem | null>(null);
+  const mulAdaptive = useAdaptive(MUL_LEVELS.map((l) => l.id), 'mul');
+  const divAdaptive = useAdaptive(DIV_LEVELS.map((l) => l.id), 'div');
+
+  const effMulLevel = mode === 'adaptive' ? mulAdaptive.level : mulLevel;
+  const effDivLevel = mode === 'adaptive' ? divAdaptive.level : divLevel;
 
   const startMul = (lv: MulLevel) => {
-    setOp('mul'); setMulLevel(lv); setMulProblem(generateMul(lv)); setPhase('SIM');
+    setOp('mul'); setMode('fixed'); setMulLevel(lv); setMulProblem(generateMul(lv)); setPhase('SIM');
   };
   const startDiv = (lv: DivLevel) => {
-    setOp('div'); setDivLevel(lv); setDivProblem(generateDiv(lv)); setPhase('SIM');
+    setOp('div'); setMode('fixed'); setDivLevel(lv); setDivProblem(generateDiv(lv)); setPhase('SIM');
+  };
+  const startMulAdaptive = () => {
+    setOp('mul'); setMode('adaptive'); setMulProblem(generateMul(mulAdaptive.level)); setPhase('SIM');
+  };
+  const startDivAdaptive = () => {
+    setOp('div'); setMode('adaptive'); setDivProblem(generateDiv(divAdaptive.level)); setPhase('SIM');
   };
 
   if (phase === 'SETUP') {
@@ -54,6 +70,9 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
             <div className="flex items-center gap-2 mb-3 text-violet-600">
               <XIcon size={20} /><span className="font-black">かけ算（小数 × 整数）</span>
             </div>
+            <button onClick={startMulAdaptive} className="w-full mb-3 p-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow hover:shadow-lg text-left transition-all active:scale-[0.98] flex items-center gap-3">
+              <Wand2 size={24} /><div><div className="font-black">おまかせ（じどうレベル）</div><div className="text-sm text-white/80">むずかしさが かわるよ</div></div>
+            </button>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {MUL_LEVELS.map((lv) => (
                 <button key={lv.id} onClick={() => startMul(lv.id)}
@@ -69,6 +88,9 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
             <div className="flex items-center gap-2 mb-3 text-blue-600">
               <Divide size={20} /><span className="font-black">わり算（小数 ÷ 整数）</span>
             </div>
+            <button onClick={startDivAdaptive} className="w-full mb-3 p-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-blue-500 text-white shadow hover:shadow-lg text-left transition-all active:scale-[0.98] flex items-center gap-3">
+              <Wand2 size={24} /><div><div className="font-black">おまかせ（じどうレベル）</div><div className="text-sm text-white/80">むずかしさが かわるよ</div></div>
+            </button>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {DIV_LEVELS.map((lv) => (
                 <button key={lv.id} onClick={() => startDiv(lv.id)}
@@ -85,26 +107,36 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
   }
 
   const title = op === 'mul' ? '小数の かけ算' : '小数の わり算';
-  const subtitle = op === 'mul'
-    ? MUL_LEVELS.find((l) => l.id === mulLevel)?.label
-    : DIV_LEVELS.find((l) => l.id === divLevel)?.label;
+  const adaptiveState = op === 'mul' ? mulAdaptive : divAdaptive;
+  const subtitle = mode === 'adaptive' ? 'おまかせ'
+    : op === 'mul' ? MUL_LEVELS.find((l) => l.id === mulLevel)?.label
+      : DIV_LEVELS.find((l) => l.id === divLevel)?.label;
 
   return (
     <AppShell title={title} subtitle={subtitle} onBack={() => setPhase('SETUP')}>
-      {op === 'mul' && mulProblem && (
-        <MulSimulator
-          key={`${mulProblem.a}x${mulProblem.b}`}
-          problem={mulProblem} level={mulLevel}
-          onNext={() => setMulProblem(generateMul(mulLevel))}
-        />
-      )}
-      {op === 'div' && divProblem && (
-        <DivSimulator
-          key={`${divProblem.dividend}/${divProblem.divisor}`}
-          problem={divProblem} level={divLevel}
-          onNext={() => setDivProblem(generateDiv(divLevel))}
-        />
-      )}
+      <div className="flex flex-col h-full">
+        {mode === 'adaptive' && (
+          <AdaptiveBar index={adaptiveState.index} total={adaptiveState.total} leveledUp={adaptiveState.leveledUp} onClearLevelUp={adaptiveState.clearLevelUp} />
+        )}
+        <div className="flex-1 min-h-0">
+          {op === 'mul' && mulProblem && (
+            <MulSimulator
+              key={`${mulProblem.a}x${mulProblem.b}`}
+              problem={mulProblem} level={effMulLevel}
+              onNext={() => setMulProblem(generateMul(effMulLevel))}
+              onResult={mode === 'adaptive' ? mulAdaptive.onResult : undefined}
+            />
+          )}
+          {op === 'div' && divProblem && (
+            <DivSimulator
+              key={`${divProblem.dividend}/${divProblem.divisor}`}
+              problem={divProblem} level={effDivLevel}
+              onNext={() => setDivProblem(generateDiv(effDivLevel))}
+              onResult={mode === 'adaptive' ? divAdaptive.onResult : undefined}
+            />
+          )}
+        </div>
+      </div>
     </AppShell>
   );
 };
@@ -114,7 +146,7 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
 const MCELL = 50;
 const MGAP = 18;
 
-const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, level, onNext, onResult }) => {
   const model = useMemo(() => buildMul(problem.a, problem.b), [problem]);
   const { productIntDigits, decimals, product, b } = model;
   const aScaled = Math.round(problem.a * 10 ** decimals).toString();
@@ -146,8 +178,10 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
 
   const finish = () => {
     setStage('DONE');
+    playClear();
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     recordResult({ moduleId: 'decimal-muldiv', skillId: `mul-${level}`, label: `${problem.a} × ${problem.b}`, correct: mistakes === 0 });
+    onResult?.(mistakes === 0);
   };
 
   const handleInput = (d: string) => {
@@ -157,7 +191,9 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
       setAnswers(next); setHint(null);
       const allDone = prodCells.every((c, i) => c === '' || next[i] !== undefined);
       if (allDone) { setStage('POINT'); setHint(`小数点より下の数字は ${decimals}こ。だから 右から ${decimals}こ 数えて 小数点をうとう。`); }
+      else playCorrect();
     } else {
+      playSoftTry();
       setMistakes((m) => m + 1);
       setShakeCol(activeCol); setTimeout(() => setShakeCol(null), 450);
       setHint('整数の かけ算と同じように、一の位から くり上がりに気をつけて 計算しよう。');
@@ -288,7 +324,7 @@ const DLEAD = 52;
 const DCELL = 50;
 const DH = 56;
 
-const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, level, onNext, onResult }) => {
   const model = useMemo(() => buildDiv(problem), [problem]);
   const { divisor, steps, intLen, baseLen, quotientStartIndex, quotientPointIndex, quotientValue, remainderValue, mode } = model;
 
@@ -315,11 +351,13 @@ const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () 
 
   const finish = (miss: number) => {
     setFinished(true);
+    playClear();
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     recordResult({
       moduleId: 'decimal-muldiv', skillId: `div-${level}`,
       label: `${problem.dividend} ÷ ${problem.divisor}`, correct: miss === 0,
     });
+    onResult?.(miss === 0);
   };
 
   const handleInput = (d: string) => {
@@ -337,7 +375,9 @@ const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () 
       } else {
         finish(mistakes);
       }
+      if (stepIdx < activeSteps.length - 1) playCorrect();
     } else {
+      playSoftTry();
       setMistakes((m) => m + 1);
       setShake(true); setTimeout(() => setShake(false), 450);
       setHint(`${current.dividendPart} の中に ${divisor} は いくつ入るかな？大きすぎても 小さすぎても いけないよ。`);

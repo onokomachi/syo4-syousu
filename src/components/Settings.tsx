@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { motion } from 'motion/react';
-import { X, Sun, Coffee, Moon, Volume2, VolumeX } from 'lucide-react';
+import { X, Sun, Coffee, Moon, Volume2, VolumeX, Music, Music2 } from 'lucide-react';
 import { useSettingsStore, Theme, FontScale } from '../store/settingsStore';
 
 interface Props {
@@ -24,7 +24,7 @@ const FONTS: { id: FontScale; label: string; sample: string }[] = [
 ];
 
 export const Settings: React.FC<Props> = ({ onClose }) => {
-  const { theme, fontScale, ttsEnabled, setTheme, setFontScale, toggleTts } = useSettingsStore();
+  const { theme, fontScale, ttsEnabled, soundEnabled, setTheme, setFontScale, toggleTts, toggleSound } = useSettingsStore();
 
   return (
     <motion.div
@@ -114,6 +114,26 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
             aria-label="よみあげの オン・オフ"
           >
             <motion.div animate={{ x: ttsEnabled ? 24 : 0 }} className="w-6 h-6 bg-white rounded-full shadow-sm" />
+          </button>
+        </div>
+
+        {/* 効果音 */}
+        <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 mt-4">
+          <div className="flex items-center gap-3">
+            {soundEnabled ? <Music className="text-blue-500" /> : <Music2 className="text-slate-400" />}
+            <div>
+              <div className="font-bold text-slate-800">こうかおん</div>
+              <div className="text-sm text-slate-500">せいかいや クリアの 音をならします。</div>
+            </div>
+          </div>
+          <button
+            onClick={toggleSound}
+            className={`w-14 h-8 rounded-full transition-colors relative flex items-center px-1 ${
+              soundEnabled ? 'bg-blue-500' : 'bg-slate-300'
+            }`}
+            aria-label="こうかおんの オン・オフ"
+          >
+            <motion.div animate={{ x: soundEnabled ? 24 : 0 }} className="w-6 h-6 bg-white rounded-full shadow-sm" />
           </button>
         </div>
       </motion.div>

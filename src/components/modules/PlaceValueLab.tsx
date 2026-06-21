@@ -17,6 +17,7 @@ import {
   SCALE_LEVELS, ScaleLevel, ScaleProblem, generateScale,
 } from '../../lib/placeValue';
 import { useProgressStore } from '../../store/progressStore';
+import { playClear, playSoftTry } from '../../lib/sound';
 
 interface Props { onExit: () => void; }
 type Activity = 'compose' | 'collect' | 'scale';
@@ -102,9 +103,10 @@ const ComposeActivity: React.FC<{ problem: ComposeProblem; level: ComposeLevel; 
   const check = () => {
     if (Math.abs(current - problem.target) < 1e-9) {
       setSolved(true);
+      playClear();
       confetti({ particleCount: 130, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'place-value', skillId: `compose-${level}`, label: `${problem.target} をつくる`, correct: true });
-    } else { setWrong(true); }
+    } else { playSoftTry(); setWrong(true); }
   };
 
   const decompo = units.map((u, i) => `${u.label}を${problem.digits[i]}こ`).join('、');
@@ -171,9 +173,11 @@ const CollectActivity: React.FC<{ problem: CollectProblem; level: CollectLevel; 
   const submit = (v: string) => {
     if (Number(v) === Number(problem.answer)) {
       setSolved(true);
+      playClear();
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'place-value', skillId: `collect-${level}`, label: question, correct: true });
     } else {
+      playSoftTry();
       setHint(problem.direction === 'count'
         ? `${problem.unitLabel} が 10こ あつまると 1つ上の位に なるよ。`
         : `${problem.unitLabel} の ${problem.count}こ分。10こで くり上がるよ。`);
@@ -216,9 +220,11 @@ const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel; onNext
   const submit = (v: string) => {
     if (Number(v) === Number(problem.answer)) {
       setSolved(true);
+      playClear();
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'place-value', skillId: `scale-${level}`, label: question, correct: true });
     } else {
+      playSoftTry();
       setHint(problem.op === '×10' ? '10倍すると 各位が 1つ 左へ（小数点は 右へ）うごくよ。' : '10分の1にすると 各位が 1つ 右へ（小数点は 左へ）うごくよ。');
     }
   };

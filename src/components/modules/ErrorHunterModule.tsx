@@ -12,6 +12,7 @@ import { SpeakButton } from '../shared/SpeakButton';
 import { AnswerEntry } from '../shared/AnswerEntry';
 import { ErrorExample, generateError } from '../../lib/errorHunter';
 import { useProgressStore } from '../../store/progressStore';
+import { playClear, playSoftTry } from '../../lib/sound';
 
 interface Props { onExit: () => void; }
 
@@ -55,6 +56,7 @@ const ErrorRound: React.FC<{ ex: ErrorExample; onNext: () => void }> = ({ ex, on
 
   const finish = () => {
     setStage('done');
+    playClear();
     confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
     recordResult({ moduleId: 'error-hunter', skillId: ex.isCorrect ? 'judge-correct' : `fix-${ex.fixKind}`, label: ex.expr, correct: mistakes === 0 });
   };
@@ -65,6 +67,7 @@ const ErrorRound: React.FC<{ ex: ErrorExample; onNext: () => void }> = ({ ex, on
       if (ex.isCorrect) finish(); // 正しい式を「正しい」と見ぬけた
       else setStage('fix'); // まちがいを「まちがい」と見ぬけた
     } else {
+      playSoftTry();
       setMistakes((m) => m + 1);
       setHint(ex.isCorrect ? 'もう一度 よく見て。この式は 合っているかな？' : 'もう一度 よく見て。どこかに まちがいが あるよ。');
     }
@@ -72,15 +75,15 @@ const ErrorRound: React.FC<{ ex: ErrorExample; onNext: () => void }> = ({ ex, on
 
   const submitFix = (v: string) => {
     if (Number(v) === Number(ex.correctAnswer)) setStage('reason');
-    else { setMistakes((m) => m + 1); setHint('正しい 答えを もう一度 計算してみよう。小数点の いちに 気をつけて。'); }
+    else { playSoftTry(); setMistakes((m) => m + 1); setHint('正しい 答えを もう一度 計算してみよう。小数点の いちに 気をつけて。'); }
   };
   const submitSign = (s: string) => {
     if (s === ex.correctAnswer) setStage('reason');
-    else { setMistakes((m) => m + 1); setHint('数直線で 考えよう。右にあるほうが 大きいよ。'); }
+    else { playSoftTry(); setMistakes((m) => m + 1); setHint('数直線で 考えよう。右にあるほうが 大きいよ。'); }
   };
   const chooseReason = (i: number) => {
     if (i === ex.correctReasonIndex) finish();
-    else { setMistakes((m) => m + 1); setHint('うーん、ちがうみたい。どんな まちがいだったか もう一度 考えよう。'); }
+    else { playSoftTry(); setMistakes((m) => m + 1); setHint('うーん、ちがうみたい。どんな まちがいだったか もう一度 考えよう。'); }
   };
 
   return (

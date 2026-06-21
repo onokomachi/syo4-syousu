@@ -19,6 +19,10 @@ import {
 import { useProgressStore } from '../../store/progressStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { speak } from '../../lib/speech';
+import { playClear, playCorrect, playSoftTry } from '../../lib/sound';
+import { useAdaptive } from '../../lib/useAdaptive';
+import { AdaptiveBar } from '../shared/AdaptiveBar';
+import { Wand2 } from 'lucide-react';
 
 const OP_W = 44;
 const CELL_W = 52;
@@ -32,11 +36,20 @@ interface Props {
 export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   const [phase, setPhase] = useState<'SETUP' | 'SIM'>('SETUP');
   const [level, setLevel] = useState<AddSubLevel>('add-basic');
+  const [mode, setMode] = useState<'fixed' | 'adaptive'>('fixed');
   const [problem, setProblem] = useState<AddSubProblem | null>(null);
+  const adaptive = useAdaptive(ADDSUB_LEVELS.map((l) => l.id), 'addsub');
+  const effectiveLevel = mode === 'adaptive' ? adaptive.level : level;
 
   const start = (lv: AddSubLevel) => {
+    setMode('fixed');
     setLevel(lv);
     setProblem(generateAddSub(lv));
+    setPhase('SIM');
+  };
+  const startAdaptive = () => {
+    setMode('adaptive');
+    setProblem(generateAddSub(adaptive.level));
     setPhase('SIM');
   };
 
@@ -52,6 +65,14 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
           </button>
           <h1 className="text-3xl font-black text-slate-800 text-center mb-1">小数の たし算・ひき算</h1>
           <p className="text-slate-500 text-center font-medium mb-6">小数点を そろえて 計算しよう</p>
+
+          <button onClick={startAdaptive} className="w-full mb-4 p-5 rounded-3xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-lg hover:shadow-xl text-left transition-all active:scale-[0.98] flex items-center gap-3">
+            <Wand2 size={28} />
+            <div>
+              <div className="text-xl font-black">おまかせ（じどうレベル）</div>
+              <div className="text-sm text-white/80 font-medium">きみに 合わせて むずかしさが かわるよ</div>
+            </div>
+          </button>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {ADDSUB_LEVELS.map((lv) => (
@@ -73,17 +94,25 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   return (
     <AppShell
       title="小数の たし算・ひき算"
-      subtitle={ADDSUB_LEVELS.find((l) => l.id === level)?.label}
+      subtitle={mode === 'adaptive' ? 'おまかせ' : ADDSUB_LEVELS.find((l) => l.id === level)?.label}
       onBack={() => setPhase('SETUP')}
     >
-      {problem && (
-        <AddSubSimulator
-          key={`${problem.a}-${problem.b}-${problem.op}`}
-          problem={problem}
-          level={level}
-          onNext={() => setProblem(generateAddSub(level))}
-        />
-      )}
+      <div className="flex flex-col h-full">
+        {mode === 'adaptive' && (
+          <AdaptiveBar index={adaptive.index} total={adaptive.total} leveledUp={adaptive.leveledUp} onClearLevelUp={adaptive.clearLevelUp} />
+        )}
+        <div className="flex-1 min-h-0">
+          {problem && (
+            <AddSubSimulator
+              key={`${problem.a}-${problem.b}-${problem.op}`}
+              problem={problem}
+              level={effectiveLevel}
+              onNext={() => setProblem(generateAddSub(effectiveLevel))}
+              onResult={mode === 'adaptive' ? adaptive.onResult : undefined}
+            />
+          )}
+        </div>
+      </div>
     </AppShell>
   );
 };
@@ -92,9 +121,10 @@ interface SimProps {
   problem: AddSubProblem;
   level: AddSubLevel;
   onNext: () => void;
+  onResult?: (perfect: boolean) => void;
 }
 
-const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext }) => {
+const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult }) => {
   const model = useMemo(() => buildColumns(problem), [problem]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [finished, setFinished] = useState(false);
@@ -133,7 +163,9 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext }) => {
       // 完答判定
       const allDone = model.answer.filter((a) => a.active).every((a) => next[a.place] !== undefined);
       if (allDone) finish();
+      else playCorrect();
     } else {
+      playSoftTry();
       setMistakes((m) => m + 1);
       setShakePlace(activePlace);
       setTimeout(() => setShakePlace(null), 450);
@@ -159,6 +191,7 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext }) => {
 
   const finish = () => {
     setFinished(true);
+    playClear();
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     recordResult({
       moduleId: 'decimal-addsub',
@@ -166,6 +199,7 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext }) => {
       label: `${problem.a} ${problem.op} ${problem.b}`,
       correct: mistakes === 0,
     });
+    onResult?.(mistakes === 0);
   };
 
   const reset = () => {
