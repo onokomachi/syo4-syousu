@@ -47,7 +47,7 @@ export const MODULES: ModuleMeta[] = [
     description: 'どちらが 大きいかな？',
     icon: 'Ruler',
     accent: 'amber',
-    status: 'soon',
+    status: 'ready',
   },
   {
     id: 'place-value',

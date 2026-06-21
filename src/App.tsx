@@ -9,6 +9,7 @@ import { Hub } from './components/Hub';
 import { DivisionModule } from './components/modules/DivisionModule';
 import { DecimalAddSubModule } from './components/modules/DecimalAddSubModule';
 import { DecimalMulDivModule } from './components/modules/DecimalMulDivModule';
+import { NumberLineModule } from './components/modules/NumberLineModule';
 import { LogView } from './components/LogView';
 import { ComingSoon } from './components/modules/ComingSoon';
 import { ModuleId } from './store/progressStore';
@@ -31,6 +32,8 @@ export default function App() {
         return <DecimalAddSubModule onExit={goHub} />;
       case 'decimal-muldiv':
         return <DecimalMulDivModule onExit={goHub} />;
+      case 'number-line':
+        return <NumberLineModule onExit={goHub} />;
       default: {
         const meta = MODULES.find((m) => m.id === id);
         return <ComingSoon title={meta?.title ?? ''} onBack={goHub} />;
