@@ -4,6 +4,7 @@ import { Difficulty } from '../types';
 import { LEVEL_CONFIG } from '../constants';
 import { Settings, Play, Check } from 'lucide-react';
 import { motion } from 'motion/react';
+import { MasteryBar } from './ui/primitives';
 
 interface Props {
   onStart: (diff: Difficulty, allowRemainder: boolean, masterMode: boolean) => void;
@@ -11,14 +12,16 @@ interface Props {
   initialDifficulty?: Difficulty;
   initialAllowRemainder?: boolean;
   initialMasterMode?: boolean;
+  getMastery?: (diff: Difficulty) => number;
 }
 
-export const ProblemSelector: React.FC<Props> = ({ 
-  onStart, 
+export const ProblemSelector: React.FC<Props> = ({
+  onStart,
   stats,
   initialDifficulty = '2-1',
   initialAllowRemainder = true,
-  initialMasterMode = false
+  initialMasterMode = false,
+  getMastery,
 }) => {
   const [selected, setSelected] = useState<Difficulty>(initialDifficulty);
   const [allowRemainder, setAllowRemainder] = useState(initialAllowRemainder);
@@ -63,6 +66,11 @@ export const ProblemSelector: React.FC<Props> = ({
                       <div className="text-xl font-bold mb-1 text-content">{config.label}</div>
                       <div className="text-sm text-muted">{config.description}</div>
                     </div>
+                    {getMastery && (
+                      <div className="mt-3">
+                        <MasteryBar value={getMastery(key as Difficulty)} />
+                      </div>
+                    )}
                     {getSolvedCount(key as Difficulty) > 0 && (
                       <div className="mt-4 flex items-center gap-1.5 self-start bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200 shadow-sm">
                         <Check size={14} strokeWidth={3} />

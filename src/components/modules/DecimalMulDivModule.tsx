@@ -16,6 +16,7 @@ import {
   DIV_LEVELS, DivLevel, DivProblem, buildDiv, generateDiv,
 } from '../../lib/decimalMulDiv';
 import { useProgressStore } from '../../store/progressStore';
+import { LevelCard } from '../ui/primitives';
 import { playClear, playCorrect, playSoftTry } from '../../lib/sound';
 import { useAdaptive } from '../../lib/useAdaptive';
 import { AdaptiveBar } from '../shared/AdaptiveBar';
@@ -40,6 +41,7 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
 
   const effMulLevel = mode === 'adaptive' ? mulAdaptive.level : mulLevel;
   const effDivLevel = mode === 'adaptive' ? divAdaptive.level : divLevel;
+  const getMastery = useProgressStore((s) => s.getMastery);
 
   const startMul = (lv: MulLevel) => {
     setOp('mul'); setMode('fixed'); setMulLevel(lv); setMulProblem(generateMul(lv)); setPhase('SIM');
@@ -75,11 +77,14 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
             </button>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {MUL_LEVELS.map((lv) => (
-                <button key={lv.id} onClick={() => startMul(lv.id)}
-                  className="p-5 rounded-3xl bg-surface border-2 border-line hover:border-violet-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
-                  <div className="text-lg font-black text-content mb-1">{lv.label}</div>
-                  <div className="text-sm text-muted font-medium">{lv.description}</div>
-                </button>
+                <LevelCard
+                  key={lv.id}
+                  label={lv.label}
+                  desc={lv.description}
+                  mastery={getMastery(`mul-${lv.id}`)}
+                  onClick={() => startMul(lv.id)}
+                  accentBorder="hover:border-violet-400"
+                />
               ))}
             </div>
           </div>
@@ -93,11 +98,14 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
             </button>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {DIV_LEVELS.map((lv) => (
-                <button key={lv.id} onClick={() => startDiv(lv.id)}
-                  className="p-5 rounded-3xl bg-surface border-2 border-line hover:border-blue-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
-                  <div className="text-lg font-black text-content mb-1">{lv.label}</div>
-                  <div className="text-sm text-muted font-medium">{lv.description}</div>
-                </button>
+                <LevelCard
+                  key={lv.id}
+                  label={lv.label}
+                  desc={lv.description}
+                  mastery={getMastery(`div-${lv.id}`)}
+                  onClick={() => startDiv(lv.id)}
+                  accentBorder="hover:border-blue-400"
+                />
               ))}
             </div>
           </div>

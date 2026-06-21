@@ -17,6 +17,7 @@ import {
   SCALE_LEVELS, ScaleLevel, ScaleProblem, generateScale,
 } from '../../lib/placeValue';
 import { useProgressStore } from '../../store/progressStore';
+import { LevelCard } from '../ui/primitives';
 import { playClear, playSoftTry } from '../../lib/sound';
 
 interface Props { onExit: () => void; }
@@ -36,18 +37,14 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
   const startCollect = (lv: CollectLevel) => { setActivity('collect'); setCollectLevel(lv); setCollect(generateCollect(lv)); setPhase('SIM'); };
   const startScale = (lv: ScaleLevel) => { setActivity('scale'); setScaleLevel(lv); setScale(generateScale(lv)); setPhase('SIM'); };
 
+  const getMastery = useProgressStore((s) => s.getMastery);
+
   if (phase === 'SETUP') {
     const Group: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({ icon, title, children }) => (
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3 text-rose-600">{icon}<span className="font-black">{title}</span></div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">{children}</div>
       </div>
-    );
-    const Card: React.FC<{ label: string; desc: string; onClick: () => void }> = ({ label, desc, onClick }) => (
-      <button onClick={onClick} className="p-5 rounded-3xl bg-surface border-2 border-line hover:border-rose-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
-        <div className="text-lg font-black text-content mb-1">{label}</div>
-        <div className="text-sm text-muted font-medium">{desc}</div>
-      </button>
     );
     return (
       <div className="w-full h-full overflow-y-auto">
@@ -57,13 +54,19 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
           </button>
           <h1 className="text-3xl font-black text-content text-center mb-6">位取りラボ</h1>
           <Group icon={<LayoutGrid size={20} />} title="数をつくる">
-            {COMPOSE_LEVELS.map((lv) => <Card key={lv.id} label={lv.label} desc={lv.description} onClick={() => startCompose(lv.id)} />)}
+            {COMPOSE_LEVELS.map((lv) => (
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMastery(`compose-${lv.id}`)} onClick={() => startCompose(lv.id)} accentBorder="hover:border-rose-400" />
+            ))}
           </Group>
           <Group icon={<Boxes size={20} />} title="あつめた数">
-            {COLLECT_LEVELS.map((lv) => <Card key={lv.id} label={lv.label} desc={lv.description} onClick={() => startCollect(lv.id)} />)}
+            {COLLECT_LEVELS.map((lv) => (
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMastery(`collect-${lv.id}`)} onClick={() => startCollect(lv.id)} accentBorder="hover:border-rose-400" />
+            ))}
           </Group>
           <Group icon={<ArrowLeftRight size={20} />} title="10倍・10分の1">
-            {SCALE_LEVELS.map((lv) => <Card key={lv.id} label={lv.label} desc={lv.description} onClick={() => startScale(lv.id)} />)}
+            {SCALE_LEVELS.map((lv) => (
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMastery(`scale-${lv.id}`)} onClick={() => startScale(lv.id)} accentBorder="hover:border-rose-400" />
+            ))}
           </Group>
         </div>
       </div>

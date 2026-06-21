@@ -15,6 +15,7 @@ import { speak } from '../lib/speech';
 import { useSettingsStore } from '../store/settingsStore';
 import { Mascot } from './ui/Mascot';
 import { GoalRing } from './ui/GoalRing';
+import { getReviewTargets } from '../lib/review';
 
 interface Props {
   onSelectModule: (id: ModuleId) => void;
@@ -79,6 +80,8 @@ const ModuleCard: React.FC<{ m: ModuleMeta; onClick: () => void; cleared: number
 export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog }) => {
   const [showSettings, setShowSettings] = useState(false);
   const getModuleCount = useProgressStore((s) => s.getModuleCount);
+  const mastery = useProgressStore((s) => s.mastery);
+  const reviewTargets = getReviewTargets(mastery);
 
   return (
     <div className="w-full h-full overflow-y-auto">
@@ -128,6 +131,24 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog }) => {
           </div>
           <p className="text-muted font-medium mt-2">すきなところから はじめよう！</p>
         </div>
+
+        {/* ふくしゅうコーナー */}
+        {reviewTargets.length > 0 && (
+          <div className="mb-6 p-5 rounded-[24px] bg-amber-50 border border-amber-200">
+            <p className="text-sm font-black text-amber-700 mb-3">もう少し れんしゅうしよう</p>
+            <div className="flex flex-wrap gap-2">
+              {reviewTargets.map((t) => (
+                <button
+                  key={t.skillId}
+                  onClick={() => onSelectModule(t.moduleId)}
+                  className="px-4 py-2 rounded-full bg-amber-100 border border-amber-300 text-amber-800 font-black text-sm hover:bg-amber-200 transition-all active:scale-95"
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* モジュール */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
