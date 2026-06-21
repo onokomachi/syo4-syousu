@@ -65,6 +65,14 @@ export const MODULES: ModuleMeta[] = [
     accent: 'cyan',
     status: 'ready',
   },
+  {
+    id: 'word-problem',
+    title: 'ことばの もんだい',
+    description: 'しきを 考えて とこう',
+    icon: 'BookOpen',
+    accent: 'teal',
+    status: 'ready',
+  },
 ];
 
 export const LEVEL_CONFIG: Record<Difficulty, { label: string; description: string }> = {

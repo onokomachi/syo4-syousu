@@ -12,7 +12,7 @@ interface Props {
   accentText?: string; // 入力中の文字色（Tailwind クラス）
 }
 
-export const AnswerEntry: React.FC<Props> = ({ onSubmit, allowDecimal = true, submitLabel = 'こたえる', accentText = 'text-slate-800' }) => {
+export const AnswerEntry: React.FC<Props> = ({ onSubmit, allowDecimal = true, submitLabel = 'こたえる', accentText = 'text-content' }) => {
   const [input, setInput] = useState('');
 
   const handleInput = (d: string) => {
@@ -23,9 +23,9 @@ export const AnswerEntry: React.FC<Props> = ({ onSubmit, allowDecimal = true, su
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="h-20 rounded-2xl bg-slate-50 border-2 border-slate-200 flex items-center justify-center">
+      <div className="h-20 rounded-2xl bg-surface-2 border-2 border-line flex items-center justify-center">
         <span className={`text-5xl font-black tabular-nums ${accentText}`}>
-          {input || <span className="text-slate-300">？</span>}
+          {input || <span className="text-faint">？</span>}
         </span>
       </div>
       <Keypad

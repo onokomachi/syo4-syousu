@@ -12,7 +12,7 @@ interface Props {
 }
 
 const THEMES: { id: Theme; label: string; icon: React.ReactNode; swatch: string }[] = [
-  { id: 'light', label: 'ふつう', icon: <Sun size={22} />, swatch: 'bg-white border-slate-300' },
+  { id: 'light', label: 'ふつう', icon: <Sun size={22} />, swatch: 'bg-surface border-slate-300' },
   { id: 'cream', label: 'クリーム', icon: <Coffee size={22} />, swatch: 'bg-[#f6efdc] border-amber-300' },
   { id: 'dark', label: 'ダーク', icon: <Moon size={22} />, swatch: 'bg-slate-800 border-slate-600' },
 ];
@@ -39,13 +39,13 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-[32px] p-8 max-w-lg w-full shadow-2xl"
+        className="bg-surface rounded-[32px] p-8 max-w-lg w-full shadow-2xl"
       >
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-black text-slate-800">ひょうじの せってい</h2>
+          <h2 className="text-2xl font-black text-content">ひょうじの せってい</h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-slate-100 text-slate-500"
+            className="p-2 rounded-full hover:bg-surface-3 text-muted"
             aria-label="とじる"
           >
             <X size={24} />
@@ -54,7 +54,7 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
 
         {/* 背景・コントラスト */}
         <div className="mb-6">
-          <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 block">
+          <label className="text-xs font-black text-faint uppercase tracking-widest mb-3 block">
             はいけいの いろ
           </label>
           <div className="grid grid-cols-3 gap-3">
@@ -63,11 +63,11 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
                 key={t.id}
                 onClick={() => setTheme(t.id)}
                 className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
-                  theme === t.id ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-slate-200'
+                  theme === t.id ? 'border-blue-500 bg-blue-50' : 'border-line hover:border-line'
                 }`}
               >
                 <span className={`w-10 h-10 rounded-full border-2 ${t.swatch}`} />
-                <span className="flex items-center gap-1 text-sm font-bold text-slate-700">
+                <span className="flex items-center gap-1 text-sm font-bold text-content">
                   {t.icon}
                   {t.label}
                 </span>
@@ -78,7 +78,7 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
 
         {/* 文字サイズ */}
         <div className="mb-6">
-          <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 block">
+          <label className="text-xs font-black text-faint uppercase tracking-widest mb-3 block">
             もじの おおきさ
           </label>
           <div className="grid grid-cols-3 gap-3">
@@ -87,23 +87,23 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
                 key={f.id}
                 onClick={() => setFontScale(f.id)}
                 className={`p-4 rounded-2xl border-2 transition-all ${
-                  fontScale === f.id ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-slate-200'
+                  fontScale === f.id ? 'border-blue-500 bg-blue-50' : 'border-line hover:border-line'
                 }`}
               >
-                <span className={`block font-black text-slate-700 ${f.sample}`}>あ</span>
-                <span className="text-xs font-bold text-slate-500">{f.label}</span>
+                <span className={`block font-black text-content ${f.sample}`}>あ</span>
+                <span className="text-xs font-bold text-muted">{f.label}</span>
               </button>
             ))}
           </div>
         </div>
 
         {/* 読み上げ */}
-        <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100">
+        <div className="flex items-center justify-between p-5 bg-surface-2 rounded-2xl border border-line">
           <div className="flex items-center gap-3">
-            {ttsEnabled ? <Volume2 className="text-blue-500" /> : <VolumeX className="text-slate-400" />}
+            {ttsEnabled ? <Volume2 className="text-blue-500" /> : <VolumeX className="text-faint" />}
             <div>
-              <div className="font-bold text-slate-800">よみあげ</div>
-              <div className="text-sm text-slate-500">もんだいや ことばを 音声でよみます。</div>
+              <div className="font-bold text-content">よみあげ</div>
+              <div className="text-sm text-muted">もんだいや ことばを 音声でよみます。</div>
             </div>
           </div>
           <button
@@ -113,17 +113,17 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
             }`}
             aria-label="よみあげの オン・オフ"
           >
-            <motion.div animate={{ x: ttsEnabled ? 24 : 0 }} className="w-6 h-6 bg-white rounded-full shadow-sm" />
+            <motion.div animate={{ x: ttsEnabled ? 24 : 0 }} className="w-6 h-6 bg-surface rounded-full shadow-sm" />
           </button>
         </div>
 
         {/* 効果音 */}
-        <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100 mt-4">
+        <div className="flex items-center justify-between p-5 bg-surface-2 rounded-2xl border border-line mt-4">
           <div className="flex items-center gap-3">
-            {soundEnabled ? <Music className="text-blue-500" /> : <Music2 className="text-slate-400" />}
+            {soundEnabled ? <Music className="text-blue-500" /> : <Music2 className="text-faint" />}
             <div>
-              <div className="font-bold text-slate-800">こうかおん</div>
-              <div className="text-sm text-slate-500">せいかいや クリアの 音をならします。</div>
+              <div className="font-bold text-content">こうかおん</div>
+              <div className="text-sm text-muted">せいかいや クリアの 音をならします。</div>
             </div>
           </div>
           <button
@@ -133,7 +133,7 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
             }`}
             aria-label="こうかおんの オン・オフ"
           >
-            <motion.div animate={{ x: soundEnabled ? 24 : 0 }} className="w-6 h-6 bg-white rounded-full shadow-sm" />
+            <motion.div animate={{ x: soundEnabled ? 24 : 0 }} className="w-6 h-6 bg-surface rounded-full shadow-sm" />
           </button>
         </div>
       </motion.div>

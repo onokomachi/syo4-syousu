@@ -22,10 +22,10 @@ export const AppShell: React.FC<Props> = ({ title, subtitle, onBack, speakText, 
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="flex items-center justify-between p-4 md:p-6 bg-white border-b border-slate-100 shadow-sm shrink-0">
+      <header className="flex items-center justify-between p-4 md:p-6 bg-surface border-b border-line shadow-sm shrink-0">
         <button
           onClick={onBack}
-          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-2 text-muted hover:text-content font-bold px-3 py-2 rounded-xl hover:bg-surface-2 transition-colors"
         >
           <ChevronLeft size={24} />
           もどる
@@ -33,15 +33,15 @@ export const AppShell: React.FC<Props> = ({ title, subtitle, onBack, speakText, 
 
         <div className="flex items-center gap-2 text-center">
           <div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-800 leading-tight">{title}</h1>
-            {subtitle && <p className="text-xs md:text-sm text-slate-400 font-bold">{subtitle}</p>}
+            <h1 className="text-xl md:text-2xl font-black text-content leading-tight">{title}</h1>
+            {subtitle && <p className="text-xs md:text-sm text-faint font-bold">{subtitle}</p>}
           </div>
           {speakText && <SpeakButton text={speakText} />}
         </div>
 
         <button
           onClick={() => setShowSettings(true)}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-800 font-bold px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-2 text-muted hover:text-content font-bold px-3 py-2 rounded-xl hover:bg-surface-2 transition-colors"
           aria-label="せってい"
         >
           <SettingsIcon size={22} />

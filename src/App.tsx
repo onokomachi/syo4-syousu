@@ -12,6 +12,7 @@ import { DecimalMulDivModule } from './components/modules/DecimalMulDivModule';
 import { NumberLineModule } from './components/modules/NumberLineModule';
 import { PlaceValueLab } from './components/modules/PlaceValueLab';
 import { ErrorHunterModule } from './components/modules/ErrorHunterModule';
+import { WordProblemModule } from './components/modules/WordProblemModule';
 import { LogView } from './components/LogView';
 import { ComingSoon } from './components/modules/ComingSoon';
 import { ModuleId } from './store/progressStore';
@@ -40,6 +41,8 @@ export default function App() {
         return <PlaceValueLab onExit={goHub} />;
       case 'error-hunter':
         return <ErrorHunterModule onExit={goHub} />;
+      case 'word-problem':
+        return <WordProblemModule onExit={goHub} />;
       default: {
         const meta = MODULES.find((m) => m.id === id);
         return <ComingSoon title={meta?.title ?? ''} onBack={goHub} />;
@@ -48,7 +51,7 @@ export default function App() {
   };
 
   return (
-    <div className="w-full h-screen overflow-hidden select-none" style={{ backgroundColor: 'var(--app-bg)' }}>
+    <div className="w-full h-screen overflow-hidden select-none bg-bg">
       <AnimatePresence mode="wait">
         {view.kind === 'HUB' && (
           <motion.div key="hub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full">

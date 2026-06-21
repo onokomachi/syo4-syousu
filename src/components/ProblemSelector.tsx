@@ -35,18 +35,18 @@ export const ProblemSelector: React.FC<Props> = ({
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-2xl w-full bg-white rounded-[32px] shadow-lg p-8 border border-slate-100"
+        className="max-w-2xl w-full bg-surface rounded-[32px] shadow-lg p-8 border border-line"
       >
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2.5 bg-blue-100 text-blue-600 rounded-xl">
             <Settings size={22} />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 font-sans tracking-tight">がくしゅうせってい</h2>
+          <h2 className="text-2xl font-black text-content font-sans tracking-tight">がくしゅうせってい</h2>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 block">レベルをえらぶ</label>
+            <label className="text-xs font-black text-faint uppercase tracking-widest mb-3 block">レベルをえらぶ</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {Object.entries(LEVEL_CONFIG).map(([key, config]) => (
                 <button
@@ -55,13 +55,13 @@ export const ProblemSelector: React.FC<Props> = ({
                   className={`p-6 rounded-2xl border-2 text-left transition-all relative overflow-hidden group ${
                     selected === key 
                       ? 'border-blue-500 bg-blue-50/50' 
-                      : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'
+                      : 'border-line hover:border-line bg-surface-2/50'
                   }`}
                 >
                   <div className="relative z-10 flex flex-col h-full justify-between">
                     <div>
-                      <div className="text-xl font-bold mb-1 text-slate-800">{config.label}</div>
-                      <div className="text-sm text-slate-500">{config.description}</div>
+                      <div className="text-xl font-bold mb-1 text-content">{config.label}</div>
+                      <div className="text-sm text-muted">{config.description}</div>
                     </div>
                     {getSolvedCount(key as Difficulty) > 0 && (
                       <div className="mt-4 flex items-center gap-1.5 self-start bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200 shadow-sm">
@@ -83,10 +83,10 @@ export const ProblemSelector: React.FC<Props> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="flex items-center justify-between p-6 bg-surface-2 rounded-2xl border border-line">
             <div>
-              <div className="font-bold text-slate-800">あまりのある問題</div>
-              <div className="text-sm text-slate-500">オンにすると、あまりが出る問題も含まれます。</div>
+              <div className="font-bold text-content">あまりのある問題</div>
+              <div className="text-sm text-muted">オンにすると、あまりが出る問題も含まれます。</div>
             </div>
             <button 
               onClick={() => setAllowRemainder(!allowRemainder)}
@@ -94,15 +94,15 @@ export const ProblemSelector: React.FC<Props> = ({
             >
               <motion.div 
                 animate={{ x: allowRemainder ? 24 : 0 }}
-                className="w-6 h-6 bg-white rounded-full shadow-sm"
+                className="w-6 h-6 bg-surface rounded-full shadow-sm"
               />
             </button>
           </div>
 
-          <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="flex items-center justify-between p-6 bg-surface-2 rounded-2xl border border-line">
             <div>
-              <div className="font-bold text-slate-800">マスターモード</div>
-              <div className="text-sm text-slate-500">ヒントが出ず、さいごにまとめて 答え合わせ をするモードだよ！</div>
+              <div className="font-bold text-content">マスターモード</div>
+              <div className="text-sm text-muted">ヒントが出ず、さいごにまとめて 答え合わせ をするモードだよ！</div>
             </div>
             <button 
               onClick={() => setMasterMode(!masterMode)}
@@ -110,7 +110,7 @@ export const ProblemSelector: React.FC<Props> = ({
             >
               <motion.div 
                 animate={{ x: masterMode ? 24 : 0 }}
-                className="w-6 h-6 bg-white rounded-full shadow-sm"
+                className="w-6 h-6 bg-surface rounded-full shadow-sm"
               />
             </button>
           </div>

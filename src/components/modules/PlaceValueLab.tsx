@@ -44,18 +44,18 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
       </div>
     );
     const Card: React.FC<{ label: string; desc: string; onClick: () => void }> = ({ label, desc, onClick }) => (
-      <button onClick={onClick} className="p-5 rounded-3xl bg-white border-2 border-slate-100 hover:border-rose-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
-        <div className="text-lg font-black text-slate-800 mb-1">{label}</div>
-        <div className="text-sm text-slate-500 font-medium">{desc}</div>
+      <button onClick={onClick} className="p-5 rounded-3xl bg-surface border-2 border-line hover:border-rose-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
+        <div className="text-lg font-black text-content mb-1">{label}</div>
+        <div className="text-sm text-muted font-medium">{desc}</div>
       </button>
     );
     return (
       <div className="w-full h-full overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6">
-          <button onClick={onExit} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors mb-2">
+          <button onClick={onExit} className="flex items-center gap-2 text-muted hover:text-content font-bold px-3 py-2 rounded-xl hover:bg-surface-3 transition-colors mb-2">
             <ChevronLeft size={24} /> 小数ランドへ
           </button>
-          <h1 className="text-3xl font-black text-slate-800 text-center mb-6">位取りラボ</h1>
+          <h1 className="text-3xl font-black text-content text-center mb-6">位取りラボ</h1>
           <Group icon={<LayoutGrid size={20} />} title="数をつくる">
             {COMPOSE_LEVELS.map((lv) => <Card key={lv.id} label={lv.label} desc={lv.description} onClick={() => startCompose(lv.id)} />)}
           </Group>
@@ -114,27 +114,27 @@ const ComposeActivity: React.FC<{ problem: ComposeProblem; level: ComposeLevel; 
   return (
     <div className="h-full overflow-y-auto p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-[36px] shadow-2xl border border-slate-100 p-6 md:p-10">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <h2 className="text-xl font-black text-slate-600">この数を つくろう：</h2>
+            <h2 className="text-xl font-black text-muted">この数を つくろう：</h2>
             <span className="text-5xl font-black text-rose-500 tabular-nums">{problem.target}</span>
             <SpeakButton text={`${problem.target} を つくろう`} />
           </div>
-          <p className="text-center text-slate-500 font-bold mb-6">いま：<span className="text-slate-800 text-xl tabular-nums">{current}</span></p>
+          <p className="text-center text-muted font-bold mb-6">いま：<span className="text-content text-xl tabular-nums">{current}</span></p>
 
           {/* マット */}
           <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${units.length}, 1fr)` }}>
             {units.map((u, i) => (
-              <div key={u.label} className="rounded-2xl border-2 border-slate-100 p-3 flex flex-col items-center">
+              <div key={u.label} className="rounded-2xl border-2 border-line p-3 flex flex-col items-center">
                 <div className="px-3 py-1 rounded-full text-white font-black mb-3" style={{ backgroundColor: u.color }}>{u.label}</div>
                 <div className="flex-1 flex flex-wrap-reverse gap-1.5 justify-center items-end content-start min-h-[140px] mb-3">
                   {Array.from({ length: counts[i] }, (_, k) => (
                     <motion.div key={k} initial={{ scale: 0 }} animate={{ scale: 1 }} className="w-8 h-8 rounded-full shadow" style={{ backgroundColor: u.color }} />
                   ))}
                 </div>
-                <div className="text-2xl font-black text-slate-700 mb-2 tabular-nums">{counts[i]}</div>
+                <div className="text-2xl font-black text-content mb-2 tabular-nums">{counts[i]}</div>
                 <div className="flex gap-2">
-                  <button onClick={() => set(i, -1)} className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600"><Minus size={20} /></button>
+                  <button onClick={() => set(i, -1)} className="w-10 h-10 rounded-xl bg-surface-3 hover:bg-surface-3 flex items-center justify-center text-muted"><Minus size={20} /></button>
                   <button onClick={() => set(i, +1)} className="w-10 h-10 rounded-xl text-white flex items-center justify-center" style={{ backgroundColor: u.color }}><Plus size={20} /></button>
                 </div>
               </div>
@@ -187,9 +187,9 @@ const CollectActivity: React.FC<{ problem: CollectProblem; level: CollectLevel; 
   return (
     <div className="h-full overflow-y-auto p-4 md:p-8">
       <div className="max-w-xl mx-auto">
-        <div className="bg-white rounded-[36px] shadow-2xl border border-slate-100 p-6 md:p-10">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
           <div className="flex items-center justify-center gap-2 mb-6 text-center">
-            <h2 className="text-2xl font-black text-slate-700">{question}</h2>
+            <h2 className="text-2xl font-black text-content">{question}</h2>
             <SpeakButton text={question} />
           </div>
           {solved ? (
@@ -199,7 +199,7 @@ const CollectActivity: React.FC<{ problem: CollectProblem; level: CollectLevel; 
             </div>
           ) : (
             <>
-              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-slate-600 font-bold">{hint}</p><SpeakButton text={hint} /></div>}
+              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} /></div>}
               <AnswerEntry onSubmit={submit} allowDecimal={problem.direction === 'value'} accentText="text-rose-600" />
             </>
           )}
@@ -232,9 +232,9 @@ const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel; onNext
   return (
     <div className="h-full overflow-y-auto p-4 md:p-8">
       <div className="max-w-xl mx-auto">
-        <div className="bg-white rounded-[36px] shadow-2xl border border-slate-100 p-6 md:p-10">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
           <div className="flex items-center justify-center gap-2 mb-6">
-            <h2 className="text-3xl font-black text-slate-700 tabular-nums">{question}</h2>
+            <h2 className="text-3xl font-black text-content tabular-nums">{question}</h2>
             <SpeakButton text={question} />
           </div>
           {solved ? (
@@ -244,7 +244,7 @@ const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel; onNext
             </div>
           ) : (
             <>
-              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-slate-600 font-bold">{hint}</p><SpeakButton text={hint} /></div>}
+              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} /></div>}
               <AnswerEntry onSubmit={submit} allowDecimal accentText="text-rose-600" />
             </>
           )}

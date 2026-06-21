@@ -1,58 +1,95 @@
 @import url('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap');
 @import "tailwindcss";
 
+/*
+ * デザイントークン。色は「セマンティック変数(--c-*)」を data-theme ごとに上書きし、
+ * Tailwind の色トークン(--color-*)はそれを参照する。
+ * これにより bg-surface / text-content / border-line などが全テーマで自動追従する。
+ */
 @theme {
-  /* 資料: 読みやすい UD フォントを採用（BIZ UDPGothic）。 */
   --font-sans: "BIZ UDPGothic", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --color-brand-primary: #3B82F6;
-  --color-brand-secondary: #10B981;
-  --color-brand-accent: #F59E0B;
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-surface-3: var(--c-surface-3);
+  --color-content: var(--c-content);
+  --color-muted: var(--c-muted);
+  --color-faint: var(--c-faint);
+  --color-line: var(--c-line);
+  --color-brand: var(--c-brand);
+  --color-brand-strong: var(--c-brand-strong);
+  --color-on-brand: var(--c-on-brand);
+
+  --radius-card: 28px;
 }
 
 @layer base {
-  body {
-    @apply text-slate-900 font-sans antialiased overflow-hidden;
-    background-color: var(--app-bg, #f8fafc);
+  /* 既定（light） */
+  :root,
+  body[data-theme='light'] {
+    --c-bg: #eef2f7;
+    --c-surface: #ffffff;
+    --c-surface-2: #f6f8fb;
+    --c-surface-3: #eaeef4;
+    --c-content: #1e293b;
+    --c-muted: #5b6b80;
+    --c-faint: #94a3b8;
+    --c-line: #e4e9f0;
+    --c-brand: #2563eb;
+    --c-brand-strong: #1d4ed8;
+    --c-on-brand: #ffffff;
+  }
+  /* 目にやさしいクリーム */
+  body[data-theme='cream'] {
+    --c-bg: #f3ead4;
+    --c-surface: #fffdf6;
+    --c-surface-2: #f7f1e2;
+    --c-surface-3: #ece2cc;
+    --c-content: #3c3528;
+    --c-muted: #7b6e57;
+    --c-faint: #a99d84;
+    --c-line: #e6dabf;
+    --c-brand: #b45309;
+    --c-brand-strong: #92400e;
+    --c-on-brand: #fffdf6;
+  }
+  /* ダーク */
+  body[data-theme='dark'] {
+    --c-bg: #0b1220;
+    --c-surface: #1b2536;
+    --c-surface-2: #161f2e;
+    --c-surface-3: #2c3a4f;
+    --c-content: #f1f5f9;
+    --c-muted: #9fb0c5;
+    --c-faint: #6b7c93;
+    --c-line: #2f3c50;
+    --c-brand: #3b82f6;
+    --c-brand-strong: #60a5fa;
+    --c-on-brand: #0b1220;
   }
 
-  /* 背景コントラスト設定（Settings から data-theme で切替）。
-     ホワイトスペースを保ちつつ、まぶしさを抑えるための土台レベル切替。 */
-  body[data-theme='light'] {
-    --app-bg: #f8fafc; /* slate-50 */
-  }
-  body[data-theme='cream'] {
-    --app-bg: #f6efdc; /* 目にやさしいクリーム */
-  }
-  body[data-theme='dark'] {
-    --app-bg: #0f172a; /* slate-900 */
+  body {
+    @apply text-content font-sans antialiased overflow-hidden;
+    background-color: var(--color-bg);
   }
 }
 
-/* Custom styles for the division grid */
+/* 筆算グリッド用（トークン化） */
 .calc-grid {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   gap: 0;
 }
-
 .calc-cell {
-  @apply w-12 h-14 flex items-center justify-center text-2xl font-mono border-slate-200 transition-all duration-200;
+  @apply w-12 h-14 flex items-center justify-center text-2xl font-mono transition-all duration-200;
+  border-color: var(--color-line);
 }
 
-.calc-cell-focus {
-  @apply bg-blue-50 ring-2 ring-blue-400 ring-inset;
-}
-
-.calc-cell-active {
-  @apply border-b-2 border-slate-900;
-}
-
-/* Landscape optimization */
+/* 横向き最適化 */
 @media (orientation: landscape) {
   .simulator-container {
     height: 100vh;
   }
 }
-

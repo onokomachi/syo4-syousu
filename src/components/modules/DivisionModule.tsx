@@ -66,11 +66,11 @@ export const DivisionModule: React.FC<Props> = ({ onExit }) => {
             <div className="max-w-3xl mx-auto px-4 py-6">
               <button
                 onClick={onExit}
-                className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors mb-2"
+                className="flex items-center gap-2 text-muted hover:text-content font-bold px-3 py-2 rounded-xl hover:bg-surface-3 transition-colors mb-2"
               >
                 <ChevronLeft size={24} /> 小数ランドへ
               </button>
-              <h1 className="text-3xl font-black text-slate-800 text-center mb-6">わり算の筆算</h1>
+              <h1 className="text-3xl font-black text-content text-center mb-6">わり算の筆算</h1>
               <ProblemSelector
                 onStart={handleStart}
                 stats={todayStats}

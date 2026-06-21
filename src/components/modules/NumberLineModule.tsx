@@ -45,10 +45,10 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
     return (
       <div className="w-full h-full overflow-y-auto">
         <div className="max-w-3xl mx-auto px-4 py-6">
-          <button onClick={onExit} className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors mb-2">
+          <button onClick={onExit} className="flex items-center gap-2 text-muted hover:text-content font-bold px-3 py-2 rounded-xl hover:bg-surface-3 transition-colors mb-2">
             <ChevronLeft size={24} /> 小数ランドへ
           </button>
-          <h1 className="text-3xl font-black text-slate-800 text-center mb-6">数直線・大小くらべ</h1>
+          <h1 className="text-3xl font-black text-content text-center mb-6">数直線・大小くらべ</h1>
 
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3 text-amber-600"><Scale size={20} /><span className="font-black">大小くらべ</span></div>
@@ -57,9 +57,9 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
             </button>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {COMPARE_LEVELS.map((lv) => (
-                <button key={lv.id} onClick={() => startCompare(lv.id)} className="p-5 rounded-3xl bg-white border-2 border-slate-100 hover:border-amber-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
-                  <div className="text-lg font-black text-slate-800 mb-1">{lv.label}</div>
-                  <div className="text-sm text-slate-500 font-medium">{lv.description}</div>
+                <button key={lv.id} onClick={() => startCompare(lv.id)} className="p-5 rounded-3xl bg-surface border-2 border-line hover:border-amber-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
+                  <div className="text-lg font-black text-content mb-1">{lv.label}</div>
+                  <div className="text-sm text-muted font-medium">{lv.description}</div>
                 </button>
               ))}
             </div>
@@ -72,9 +72,9 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
             </button>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {LINE_LEVELS.map((lv) => (
-                <button key={lv.id} onClick={() => startLine(lv.id)} className="p-5 rounded-3xl bg-white border-2 border-slate-100 hover:border-amber-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
-                  <div className="text-lg font-black text-slate-800 mb-1">{lv.label}</div>
-                  <div className="text-sm text-slate-500 font-medium">{lv.description}</div>
+                <button key={lv.id} onClick={() => startLine(lv.id)} className="p-5 rounded-3xl bg-surface border-2 border-line hover:border-amber-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
+                  <div className="text-lg font-black text-content mb-1">{lv.label}</div>
+                  <div className="text-sm text-muted font-medium">{lv.description}</div>
                 </button>
               ))}
             </div>
@@ -157,7 +157,7 @@ const NumberLine: React.FC<NumberLineProps> = ({ min, max, step, majorEvery, mar
               />
             )}
             {isMajor(i) && (
-              <span className={`mt-1 text-sm font-black ${t === (min + max) / 2 ? 'text-amber-600' : 'text-slate-500'}`}>{Number(t.toFixed(1))}</span>
+              <span className={`mt-1 text-sm font-black ${t === (min + max) / 2 ? 'text-amber-600' : 'text-muted'}`}>{Number(t.toFixed(1))}</span>
             )}
           </div>
         );
@@ -208,7 +208,7 @@ const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel; onNext
     return (
       <button key={r} onClick={() => choose(r)} disabled={solved}
         className={`w-24 h-24 rounded-3xl text-5xl font-black shadow-md transition-all active:scale-95 ${
-          isCorrect ? 'bg-emerald-500 text-white' : isWrong ? 'bg-rose-100 text-rose-400' : 'bg-white border-2 border-slate-200 text-slate-700 hover:border-amber-400'
+          isCorrect ? 'bg-emerald-500 text-white' : isWrong ? 'bg-rose-100 text-rose-400' : 'bg-surface border-2 border-line text-content hover:border-amber-400'
         }`}>{r}</button>
     );
   };
@@ -216,11 +216,11 @@ const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel; onNext
   return (
     <div className="h-full overflow-y-auto p-4 md:p-10">
       <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-[36px] shadow-2xl border border-slate-100 p-8 md:p-12">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-8 md:p-12">
           {/* 式 */}
           <div className="flex items-center justify-center gap-4 md:gap-8 mb-8">
             <span className="text-5xl md:text-6xl font-black text-blue-600 tabular-nums">{pair.aStr}</span>
-            <span className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center text-4xl font-black text-slate-400">
+            <span className="w-16 h-16 rounded-2xl bg-surface-3 flex items-center justify-center text-4xl font-black text-faint">
               {solved ? correct : '?'}
             </span>
             <span className="text-5xl md:text-6xl font-black text-rose-500 tabular-nums">{pair.bStr}</span>
@@ -229,12 +229,12 @@ const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel; onNext
 
           {!solved && (
             <>
-              <p className="text-center text-slate-500 font-bold mb-4">あてはまる しるしを えらぼう</p>
+              <p className="text-center text-muted font-bold mb-4">あてはまる しるしを えらぼう</p>
               <div className="flex justify-center gap-4 mb-2">{(['>', '=', '<'] as const).map(btn)}</div>
               {picked && picked !== correct && (
                 <div className="mt-6 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-start gap-2">
                   <Lightbulb className="text-amber-500 shrink-0" size={20} />
-                  <p className="text-slate-600 font-bold">数直線で たしかめよう。右にあるほうが 大きいよ。</p>
+                  <p className="text-muted font-bold">数直線で たしかめよう。右にあるほうが 大きいよ。</p>
                 </div>
               )}
             </>
@@ -296,14 +296,14 @@ const LineActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: (
   return (
     <div className="h-full overflow-y-auto p-4 md:p-10">
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-[36px] shadow-2xl border border-slate-100 p-8 md:p-12">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-8 md:p-12">
           <div className="flex items-center justify-center gap-3 mb-2">
-            <h2 className="text-2xl font-black text-slate-700">
+            <h2 className="text-2xl font-black text-content">
               <span className="text-amber-600 text-4xl tabular-nums">{targetStr}</span> は どこかな？
             </h2>
             <SpeakButton text={`${targetStr} は どこかな。正しい 目もりを タップしよう`} />
           </div>
-          <p className="text-center text-slate-500 font-bold mb-8">正しい 目もりの ●を タップしよう</p>
+          <p className="text-center text-muted font-bold mb-8">正しい 目もりの ●を タップしよう</p>
 
           <div className="px-2 md:px-6 py-4">
             <NumberLine min={min} max={max} step={step} majorEvery={majorEvery}
@@ -316,7 +316,7 @@ const LineActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: (
           {!solved && hint && (
             <div className="mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2 justify-center">
               <Lightbulb className="text-amber-500 shrink-0" size={20} />
-              <p className="text-slate-600 font-bold">{hint}</p>
+              <p className="text-muted font-bold">{hint}</p>
               <SpeakButton text={hint} />
             </div>
           )}

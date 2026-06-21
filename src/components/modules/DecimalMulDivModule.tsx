@@ -60,11 +60,11 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
         <div className="max-w-3xl mx-auto px-4 py-6">
           <button
             onClick={onExit}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-900 font-bold px-3 py-2 rounded-xl hover:bg-slate-100 transition-colors mb-2"
+            className="flex items-center gap-2 text-muted hover:text-content font-bold px-3 py-2 rounded-xl hover:bg-surface-3 transition-colors mb-2"
           >
             <ChevronLeft size={24} /> 小数ランドへ
           </button>
-          <h1 className="text-3xl font-black text-slate-800 text-center mb-6">小数の かけ算・わり算</h1>
+          <h1 className="text-3xl font-black text-content text-center mb-6">小数の かけ算・わり算</h1>
 
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3 text-violet-600">
@@ -76,9 +76,9 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {MUL_LEVELS.map((lv) => (
                 <button key={lv.id} onClick={() => startMul(lv.id)}
-                  className="p-5 rounded-3xl bg-white border-2 border-slate-100 hover:border-violet-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
-                  <div className="text-lg font-black text-slate-800 mb-1">{lv.label}</div>
-                  <div className="text-sm text-slate-500 font-medium">{lv.description}</div>
+                  className="p-5 rounded-3xl bg-surface border-2 border-line hover:border-violet-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
+                  <div className="text-lg font-black text-content mb-1">{lv.label}</div>
+                  <div className="text-sm text-muted font-medium">{lv.description}</div>
                 </button>
               ))}
             </div>
@@ -94,9 +94,9 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {DIV_LEVELS.map((lv) => (
                 <button key={lv.id} onClick={() => startDiv(lv.id)}
-                  className="p-5 rounded-3xl bg-white border-2 border-slate-100 hover:border-blue-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
-                  <div className="text-lg font-black text-slate-800 mb-1">{lv.label}</div>
-                  <div className="text-sm text-slate-500 font-medium">{lv.description}</div>
+                  className="p-5 rounded-3xl bg-surface border-2 border-line hover:border-blue-400 hover:shadow-lg text-left transition-all active:scale-[0.98]">
+                  <div className="text-lg font-black text-content mb-1">{lv.label}</div>
+                  <div className="text-sm text-muted font-medium">{lv.description}</div>
                 </button>
               ))}
             </div>
@@ -247,7 +247,7 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
                 : prodCells[c] !== '' && (stage === 'POINT' || stage === 'DONE') ? <span className="text-violet-600">{prodCells[c]}</span>
                 : null
             ) : (
-              ch !== '' ? <span className="text-slate-800">{ch}</span> : null
+              ch !== '' ? <span className="text-content">{ch}</span> : null
             )}
           </motion.div>
         </React.Fragment>
@@ -260,16 +260,16 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
   return (
     <div className="flex flex-col md:flex-row h-full">
       <div className="flex-1 overflow-auto p-4 md:p-10 flex justify-center items-start">
-        <div className="bg-white p-8 md:p-12 rounded-[36px] shadow-2xl border border-slate-100">
+        <div className="bg-surface p-8 md:p-12 rounded-[36px] shadow-2xl border border-line">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <h2 className="text-2xl font-black text-slate-700 tabular-nums">{problem.a} × {problem.b}</h2>
+            <h2 className="text-2xl font-black text-content tabular-nums">{problem.a} × {problem.b}</h2>
             <SpeakButton text={`${problem.a} かける ${problem.b}`} />
           </div>
           <div className="font-mono">
             {renderRow(aCells, { showDotAtGap: dotGap })}
             {/* ×b 行 */}
             <div className="flex items-center justify-end relative">
-              <span className="absolute left-[-40px] text-3xl font-black text-slate-500">×</span>
+              <span className="absolute left-[-40px] text-3xl font-black text-muted">×</span>
               {renderRow(rightAlign(b.toString()))}
             </div>
             <div className="border-b-4 border-slate-800 rounded-full my-1 ml-auto" style={{ width: lineW }} />
@@ -282,7 +282,7 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
         </div>
       </div>
 
-      <div className="w-full md:w-[400px] bg-white border-l border-slate-100 p-6 md:p-8 flex flex-col gap-5 overflow-y-auto">
+      <div className="w-full md:w-[400px] bg-surface border-l border-line p-6 md:p-8 flex flex-col gap-5 overflow-y-auto">
         {stage === 'DONE' ? (
           <div className="flex-1 flex flex-col justify-center items-center p-6 bg-violet-50 border border-violet-100 rounded-3xl text-center">
             <span className="text-6xl mb-4">{mistakes === 0 ? '🏆' : '🎉'}</span>
@@ -297,7 +297,7 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
                 <h3 className="text-violet-700 font-black text-lg flex items-center gap-2"><Lightbulb size={20} /> ヒント</h3>
                 <SpeakButton text={hint ?? (stage === 'DIGITS' ? '整数のかけ算と同じように 計算しよう' : `右から ${decimals}こ 数えて 小数点をうとう`)} />
               </div>
-              <p className="text-slate-600 font-bold leading-relaxed">
+              <p className="text-muted font-bold leading-relaxed">
                 {hint ?? (stage === 'DIGITS'
                   ? 'まず 小数点を 考えずに、整数の かけ算として 一の位から 計算しよう。'
                   : `小数点より下の数字は ${decimals}こ。右から ${decimals}こ 数えて、すきまの ボタンを おそう。`)}
@@ -310,7 +310,7 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
             )}
           </>
         )}
-        <button onClick={reset} className="flex items-center justify-center gap-2 text-slate-400 hover:text-slate-600 py-4 font-bold border-t border-slate-100 shrink-0">
+        <button onClick={reset} className="flex items-center justify-center gap-2 text-faint hover:text-muted py-4 font-bold border-t border-line shrink-0">
           <RotateCcw size={20} /> さいしょから
         </button>
       </div>
@@ -420,13 +420,13 @@ const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () 
   return (
     <div className="flex flex-col md:flex-row h-full">
       <div className="flex-1 overflow-auto p-4 md:p-10 flex justify-center items-start">
-        <div className="bg-white p-8 md:p-12 rounded-[36px] shadow-2xl border border-slate-100">
+        <div className="bg-surface p-8 md:p-12 rounded-[36px] shadow-2xl border border-line">
           <div className="flex items-center justify-center gap-3 mb-6">
-            <h2 className="text-2xl font-black text-slate-700 tabular-nums">{problem.dividend} ÷ {problem.divisor}</h2>
+            <h2 className="text-2xl font-black text-content tabular-nums">{problem.dividend} ÷ {problem.divisor}</h2>
             <SpeakButton text={`${problem.dividend} わる ${problem.divisor}`} />
           </div>
 
-          <div className="font-mono text-slate-800">
+          <div className="font-mono text-content">
             {/* 商の行 */}
             <div className="grid items-center text-center" style={gridStyle}>
               <div />
@@ -454,7 +454,7 @@ const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () 
                 const showPoint = c === intLen - 1;
                 return (
                   <div key={c} className="relative flex items-center justify-center text-4xl font-black" style={{ height: DH }}>
-                    <span className={appended ? 'text-slate-300' : isFrac && mode === 'remainder' ? 'text-slate-400' : ''}>{displayDigits[c]}</span>
+                    <span className={appended ? 'text-faint' : isFrac && mode === 'remainder' ? 'text-faint' : ''}>{displayDigits[c]}</span>
                     {showPoint && <Dot />}
                   </div>
                 );
@@ -466,14 +466,14 @@ const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () 
               if (row.stepRef > revealedStep) return null;
               return (
                 <div key={i} className="grid items-center text-center relative" style={{ ...gridStyle, height: DH }}>
-                  <div className="flex items-center justify-end pr-2 text-slate-400 font-bold text-2xl">
+                  <div className="flex items-center justify-end pr-2 text-faint font-bold text-2xl">
                     {row.kind === 'mul' ? '' : '−'}
                   </div>
                   {row.kind === 'mul' && (
                     <div className="absolute left-[52px] right-0 bottom-0 border-b-2 border-slate-300" />
                   )}
                   {row.cells.map((ch, c) => (
-                    <div key={c} className="flex items-center justify-center text-3xl font-medium text-slate-600" style={{ height: DH }}>
+                    <div key={c} className="flex items-center justify-center text-3xl font-medium text-muted" style={{ height: DH }}>
                       {ch}
                     </div>
                   ))}
@@ -484,7 +484,7 @@ const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () 
         </div>
       </div>
 
-      <div className="w-full md:w-[400px] bg-white border-l border-slate-100 p-6 md:p-8 flex flex-col gap-5 overflow-y-auto">
+      <div className="w-full md:w-[400px] bg-surface border-l border-line p-6 md:p-8 flex flex-col gap-5 overflow-y-auto">
         {finished ? (
           <div className="flex-1 flex flex-col justify-center items-center p-6 bg-blue-50 border border-blue-100 rounded-3xl text-center">
             <span className="text-6xl mb-4">{mistakes === 0 ? '🏆' : '🎉'}</span>
@@ -502,7 +502,7 @@ const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () 
                 <h3 className="text-blue-700 font-black text-lg flex items-center gap-2"><Lightbulb size={20} /> たてる</h3>
                 <SpeakButton text={hint ?? (current ? `${current.dividendPart} わる ${divisor} は いくつ` : '')} />
               </div>
-              <p className="text-slate-600 font-bold leading-relaxed">
+              <p className="text-muted font-bold leading-relaxed">
                 {hint ?? (current ? `${current.dividendPart} の中に ${divisor} は いくつ 入るかな？ 商を 1けた たてよう。` : '')}
               </p>
             </motion.div>
@@ -511,7 +511,7 @@ const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () 
             </div>
           </>
         )}
-        <button onClick={reset} className="flex items-center justify-center gap-2 text-slate-400 hover:text-slate-600 py-4 font-bold border-t border-slate-100 shrink-0">
+        <button onClick={reset} className="flex items-center justify-center gap-2 text-faint hover:text-muted py-4 font-bold border-t border-line shrink-0">
           <RotateCcw size={20} /> さいしょから
         </button>
       </div>

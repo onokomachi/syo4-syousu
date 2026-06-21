@@ -22,10 +22,10 @@ export const AdaptiveBar: React.FC<Props> = ({ index, total, leveledUp, onClearL
   }, [leveledUp, onClearLevelUp]);
 
   return (
-    <div className="relative flex items-center justify-center gap-2 py-2 bg-white border-b border-slate-100">
+    <div className="relative flex items-center justify-center gap-2 py-2 bg-surface border-b border-line">
       <Wand2 size={16} className="text-indigo-500" />
       <span className="text-sm font-black text-indigo-600">おまかせモード</span>
-      <span className="text-sm font-bold text-slate-400">レベル {index + 1} / {total}</span>
+      <span className="text-sm font-bold text-faint">レベル {index + 1} / {total}</span>
       <AnimatePresence>
         {leveledUp && (
           <motion.div

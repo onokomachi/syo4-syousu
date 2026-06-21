@@ -16,8 +16,8 @@ export const ComingSoon: React.FC<Props> = ({ title, onBack }) => (
       <div className="w-24 h-24 rounded-3xl bg-amber-50 text-amber-500 flex items-center justify-center mb-6">
         <Hammer size={44} />
       </div>
-      <h2 className="text-2xl font-black text-slate-700 mb-2">ただいま じゅんびちゅう</h2>
-      <p className="text-slate-500 font-medium">このコーナーは もうすぐ あそべるよ！</p>
+      <h2 className="text-2xl font-black text-content mb-2">ただいま じゅんびちゅう</h2>
+      <p className="text-muted font-medium">このコーナーは もうすぐ あそべるよ！</p>
     </div>
   </AppShell>
 );
