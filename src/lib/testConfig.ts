@@ -12,12 +12,14 @@ import {
   generateCollect, CollectProblem, CollectLevel,
   generateScale, ScaleProblem, ScaleLevel,
 } from './placeValue';
+import { scaleOpLabel } from './placeValue';
 import {
   generateLine, LineProblem, LineLevel,
   generateCompare, ComparePair, CompareLevel,
   generateOrder, OrderProblem, OrderLevel,
+  relation,
 } from './numberLine';
-import { generateAddSub, AddSubProblem, AddSubLevel } from './decimal';
+import { generateAddSub, AddSubProblem, AddSubLevel, buildColumns } from './decimal';
 import { generateWordProblem, WordProblem } from './wordProblems';
 import { makeError, ErrorExample, ErrorPreset } from './errorHunter';
 
@@ -92,6 +94,46 @@ export const TEST_STEPS: TestStep[] = [
   /* ===== 参考（点数なし・評価のみ） ===== */
   { daimon: 12, title: 'いかそう算数（100m走 速い順にならべる）', section: '参考', points: 0, gen: () => ({ kind: 'order', p: generateOrder('order-5'), level: 'order-5' }) },
 ];
+
+/**
+ * テスト結果のきろく用に、各問題を「問題文」と「正しい答え」の文字列にする。
+ * 児童の入力値そのものは保存せず、問題・正答・○×だけを残す。
+ */
+export function describeProblem(tp: TestProblem): { q: string; a: string } {
+  switch (tp.kind) {
+    case 'decompose': {
+      const c = tp.p.counts;
+      return {
+        q: `${tp.p.valueStr} は それぞれ 何こ分？`,
+        a: `1を${c.ones}こ・0.1を${c.tenths}こ・0.01を${c.hundredths}こ・0.001を${c.thousandths}こ`,
+      };
+    }
+    case 'placeid':
+      return { q: `${tp.p.valueStr} の ${tp.p.placeLabel}の数字`, a: tp.p.answer };
+    case 'unit':
+      return { q: tp.p.promptStr, a: `${tp.p.answer}${tp.p.answerUnit}` };
+    case 'compose':
+      return { q: `各位を 組み立てて 数をつくる`, a: String(tp.p.target) };
+    case 'collect':
+      return tp.p.direction === 'count'
+        ? { q: `${tp.p.value} は ${tp.p.unitLabel}を 何こ 集めた数？`, a: `${tp.p.answer}こ` }
+        : { q: `${tp.p.unitLabel}を ${tp.p.count}こ 集めた数`, a: tp.p.answer };
+    case 'lineRead':
+      return { q: `数直線の ◆ を よむ（${tp.p.min}〜${tp.p.max}）`, a: tp.p.targetStr };
+    case 'compare':
+      return { q: `${tp.p.aStr} ☐ ${tp.p.bStr}`, a: relation(tp.p.aStr, tp.p.bStr) };
+    case 'scale':
+      return { q: `${tp.p.value} を ${scaleOpLabel(tp.p.op)}`, a: tp.p.answer };
+    case 'addsub':
+      return { q: `${tp.p.a} ${tp.p.op} ${tp.p.b}`, a: String(buildColumns(tp.p).result) };
+    case 'word':
+      return { q: tp.p.text, a: `${tp.p.answer}${tp.p.unit}` };
+    case 'error':
+      return { q: `まちがい探し：${tp.p.expr}`, a: `正しい答え ${tp.p.correctAnswer}` };
+    case 'order':
+      return { q: `${tp.p.dir === 'asc' ? '小さい' : '大きい'}順に ならべる`, a: tp.p.sorted.join(' → ') };
+  }
+}
 
 export const OMOTE_MAX = TEST_STEPS.filter((s) => s.section === '表').reduce((a, s) => a + s.points, 0); // 100
 export const URA_MAX = TEST_STEPS.filter((s) => s.section === '裏').reduce((a, s) => a + s.points, 0);   // 50

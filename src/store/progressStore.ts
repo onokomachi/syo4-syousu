@@ -16,6 +16,30 @@ export type ModuleId =
   | 'word-problem'
   | 'mock-test';
 
+/** 本番テストの各設問の結果（学習のきろくで詳細表示するため） */
+export interface TestStepResult {
+  daimon: number;
+  sub?: string;
+  title: string;
+  section: '表' | '裏' | '参考';
+  q: string; // 問題
+  a: string; // 正しい答え
+  points: number;
+  earned: number;
+  correct: boolean; // 一発正解できたか
+}
+
+export interface TestDetail {
+  mode: '表' | '裏' | 'ぜんぶ';
+  omoteScore: number;
+  omoteMax: number;
+  uraScore: number;
+  uraMax: number;
+  total: number;
+  totalMax: number;
+  steps: TestStepResult[];
+}
+
 export interface ResultRecord {
   id: string;
   ts: number;
@@ -23,6 +47,7 @@ export interface ResultRecord {
   skillId: string; // 例: 'addsub-diff-digits', 'compare', 'muldiv-remainder'
   label: string; // 履歴表示用（例: "3.5 + 4.18"）
   correct: boolean; // ノーミスで完答できたか
+  detail?: TestDetail; // 本番テストのときだけ。各設問の問題・正答・○×
 }
 
 export interface SkillMastery {
