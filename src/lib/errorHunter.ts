@@ -142,6 +142,28 @@ const addAlign: Builder = () => {
   };
 };
 
+// たし算で くり上げを忘れる誤り（3.6 + 2.8 = 5.4 → 正 6.4）
+// 小数部の和が10以上でくり上がるのに、一の位に +1 し忘れる典型ミス（結果が −1 ずれる）
+const addCarry: Builder = () => {
+  const tA = rnd(2, 9);
+  const tB = rnd(10 - tA, 9); // tA + tB >= 10 を保証（くり上がり発生）
+  const a = rnd(1, 4) + tA / 10;
+  const b = rnd(1, 4) + tB / 10;
+  const correct = Math.round((a + b) * 10) / 10;
+  const wrong = Math.round((correct - 1) * 10) / 10; // 一の位への くり上げ +1 を忘れる
+  const r = buildReasons(REASONS.REGROUP);
+  return {
+    character: pick(CHARS),
+    expr: `${a} + ${b} = ${wrong}`,
+    speak: `${a} たす ${b} は ${wrong}`,
+    isCorrect: false,
+    fixKind: 'number',
+    correctAnswer: String(correct),
+    reasonOptions: r.options,
+    correctReasonIndex: r.index,
+  };
+};
+
 // ひき算で くり下がりをまちがえる誤り（6.3 − 3.74 = 2.66 → 正 2.56）
 // 桁ちがいの引き算で「借りたのに 上の位を 1 へらし忘れる」典型ミス（結果が +0.1 ずれる）
 const subBorrow: Builder = () => {
@@ -187,11 +209,18 @@ const correctCompare: Builder = () => {
   return { character: pick(CHARS), expr: `0.${x} ${rel} 0.${y}`, speak: `0てん${x} は 0てん${y} より`, isCorrect: true, fixKind: 'sign', correctAnswer: rel, reasonOptions: [], correctReasonIndex: -1 };
 };
 
-const ERROR_BUILDERS = [mulPoint, divPoint, compareMegz, collectRegroup, addAlign, subBorrow];
+const ERROR_BUILDERS = [mulPoint, divPoint, compareMegz, collectRegroup, addAlign, addCarry, subBorrow];
 const CORRECT_BUILDERS = [correctAdd, correctCompare];
 
 /** ランダムに誤り例（ときどき正しい例）を生成。 */
 export function generateError(): ErrorExample {
   if (Math.random() < 0.25) return pick(CORRECT_BUILDERS)();
   return pick(ERROR_BUILDERS)();
+}
+
+/** テスト本番モード用：誤りの種類を指定して生成（大問11）。 */
+export type ErrorPreset = 'addAlign' | 'addCarry' | 'subBorrow';
+const ERROR_PRESETS: Record<ErrorPreset, Builder> = { addAlign, addCarry, subBorrow };
+export function makeError(preset: ErrorPreset): ErrorExample {
+  return ERROR_PRESETS[preset]();
 }

@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Divide, PlusSquare, X, Ruler, LayoutGrid, Search, BookOpen,
-  History, Settings as SettingsIcon, Lock, Volume2,
+  History, Settings as SettingsIcon, Lock, Volume2, ClipboardCheck, ChevronRight,
 } from 'lucide-react';
 import { MODULES, ModuleMeta } from '../constants';
 import { ModuleId, useProgressStore } from '../store/progressStore';
@@ -19,6 +19,7 @@ import { getReviewTargets } from '../lib/review';
 interface Props {
   onSelectModule: (id: ModuleId) => void;
   onOpenLog: () => void;
+  onStartTest: () => void;
 }
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
@@ -76,8 +77,9 @@ const ModuleCard: React.FC<{ m: ModuleMeta; onClick: () => void; cleared: number
   );
 };
 
-export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog }) => {
+export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog, onStartTest }) => {
   const [showSettings, setShowSettings] = useState(false);
+  const ttsEnabled = useSettingsStore((s) => s.ttsEnabled);
   const getModuleCount = useProgressStore((s) => s.getModuleCount);
   const mastery = useProgressStore((s) => s.mastery);
   const reviewTargets = getReviewTargets(mastery);
@@ -127,6 +129,23 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog }) => {
           </div>
           <p className="text-muted font-medium mt-2">すきなところから はじめよう！</p>
         </div>
+
+        {/* 本番テストモード */}
+        <motion.button
+          whileHover={{ y: -3 }}
+          whileTap={{ scale: 0.99 }}
+          onClick={() => { if (ttsEnabled) speak('本番テストモード'); onStartTest(); }}
+          className="w-full mb-6 p-5 rounded-[24px] bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg hover:shadow-xl text-left transition-all flex items-center gap-4"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
+            <ClipboardCheck size={30} />
+          </div>
+          <div className="flex-1">
+            <div className="text-xl font-black">📝 本番テストモード</div>
+            <div className="text-sm text-white/85 font-medium">「5.小数のしくみ」を テストと同じ 問題数で ちょうせん！</div>
+          </div>
+          <ChevronRight size={28} className="shrink-0 opacity-80" />
+        </motion.button>
 
         {/* ふくしゅうコーナー */}
         {reviewTargets.length > 0 && (

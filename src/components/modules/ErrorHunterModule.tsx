@@ -48,8 +48,8 @@ export const ErrorHunterModule: React.FC<Props> = ({ onExit }) => {
   );
 };
 
-const ErrorRound: React.FC<{ ex: ErrorExample; onNext: () => void }> = ({ ex, onNext }) => {
-  const [stage, setStage] = useState<'judge' | 'fix' | 'reason' | 'done'>('judge');
+export const ErrorRound: React.FC<{ ex: ErrorExample; onNext: () => void; startStage?: 'judge' | 'fix'; onResult?: (perfect: boolean) => void }> = ({ ex, onNext, startStage = 'judge', onResult }) => {
+  const [stage, setStage] = useState<'judge' | 'fix' | 'reason' | 'done'>(startStage);
   const [mistakes, setMistakes] = useState(0);
   const [hint, setHint] = useState<string | null>(null);
   const recordResult = useProgressStore((s) => s.recordResult);
@@ -59,6 +59,7 @@ const ErrorRound: React.FC<{ ex: ErrorExample; onNext: () => void }> = ({ ex, on
     playClear();
     confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
     recordResult({ moduleId: 'error-hunter', skillId: ex.isCorrect ? 'judge-correct' : `fix-${ex.fixKind}`, label: ex.expr, correct: mistakes === 0 });
+    onResult?.(mistakes === 0);
   };
 
   const judge = (saysCorrect: boolean) => {

@@ -272,9 +272,9 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
                 ? 'bg-violet-50 ring-4 ring-violet-400 ring-inset rounded-xl' : ''
             }`}
           >
-            {/* くり上がりメモ（被乗数の左肩に小さく・採点なし） */}
+            {/* くり上がりメモ（補助線のすぐ下・左隣けたの右上に小さく・採点なし） */}
             {opts.showCarry && carries[c] && (
-              <span className="absolute -top-3 left-0 text-base font-black text-rose-400 leading-none">{carries[c]}</span>
+              <span className="absolute top-0 right-0 text-base font-black text-rose-400 leading-none">{carries[c]}</span>
             )}
             {opts.isProduct ? (
               answers[c] !== undefined ? <span className="text-violet-600">{answers[c]}</span>
@@ -302,7 +302,7 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
             <SpeakButton text={`${problem.a} かける ${problem.b}`} />
           </div>
           <div className="font-mono">
-            {renderRow(aCells, { showDotAtGap: dotGap, showCarry: true })}
+            {renderRow(aCells, { showDotAtGap: dotGap })}
             {/* ×b 行 */}
             <div className="flex items-center justify-end relative">
               <span className="absolute left-[-40px] text-3xl font-black text-muted">×</span>
@@ -312,6 +312,7 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
             {renderRow(prodCells, {
               isProduct: true,
               interactive: stage === 'POINT',
+              showCarry: true,
               showDotAtGap: stage === 'DONE' ? dotGap : undefined,
             })}
           </div>

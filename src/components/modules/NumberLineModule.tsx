@@ -234,7 +234,7 @@ const NumberLine: React.FC<NumberLineProps> = ({ min, max, step, majorEvery, mar
 
 const REL_LABEL: Record<string, string> = { '>': 'A は B より 大きい', '<': 'A は B より 小さい', '=': 'A と B は 等しい' };
 
-const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ pair, level, onNext, onResult }) => {
+export const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ pair, level, onNext, onResult }) => {
   const correct = relation(pair.aStr, pair.bStr);
   const a = Number(pair.aStr), b = Number(pair.bStr);
   const [picked, setPicked] = useState<'>' | '<' | '=' | null>(null);
@@ -409,7 +409,7 @@ const LineActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: (
 
 /* ===================== 数直線をよむ（数を答える） ===================== */
 
-const LineReadActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+export const LineReadActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, level, onNext, onResult }) => {
   const { target, targetStr, min, max, step, majorEvery } = problem;
   const [solved, setSolved] = useState(false);
   const [mistakes, setMistakes] = useState(0);
@@ -423,6 +423,7 @@ const LineReadActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNex
       playClear();
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'number-line', skillId: `line-read-${level}`, label: `${targetStr} をよむ`, correct: mistakes === 0 });
+      onResult?.(mistakes === 0);
     } else {
       playSoftTry();
       setMistakes((m) => m + 1);
@@ -476,7 +477,7 @@ const LineReadActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNex
 
 /* ===================== ならべかえ ===================== */
 
-const OrderActivity: React.FC<{ problem: OrderProblem; level: OrderLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+export const OrderActivity: React.FC<{ problem: OrderProblem; level: OrderLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, level, onNext, onResult }) => {
   const { items, dir, sorted } = problem;
   const [placed, setPlaced] = useState<string[]>([]);
   const [solved, setSolved] = useState(false);
@@ -498,6 +499,7 @@ const OrderActivity: React.FC<{ problem: OrderProblem; level: OrderLevel; onNext
         playClear();
         confetti({ particleCount: 130, spread: 70, origin: { y: 0.6 } });
         recordResult({ moduleId: 'number-line', skillId: `order-${level}`, label: `${dirLabel}にならべる`, correct: mistakes === 0 });
+        onResult?.(mistakes === 0);
       } else {
         playCorrect();
       }

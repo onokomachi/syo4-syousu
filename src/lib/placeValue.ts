@@ -64,15 +64,23 @@ export interface CollectProblem {
   answer: string; // 入力させる正答（文字列）
 }
 
-export function generateCollect(level: CollectLevel): CollectProblem {
+/** テスト本番モード用に単位・方向を固定できる。 */
+export interface CollectOpts {
+  unit?: '0.1' | '0.01' | '0.001';
+  direction?: 'count' | 'value';
+}
+
+export function generateCollect(level: CollectLevel, opts: CollectOpts = {}): CollectProblem {
   const units = [
     { label: '0.1', value: 0.1, milli: 100 },
     { label: '0.01', value: 0.01, milli: 10 },
     { label: '0.001', value: 0.001, milli: 1 },
   ];
-  const u = units[rnd(0, level === 'collect-basic' ? 1 : 2)];
+  const u = opts.unit
+    ? units.find((x) => x.label === opts.unit)!
+    : units[rnd(0, level === 'collect-basic' ? 1 : 2)];
   let count: number;
-  if (level === 'collect-basic') {
+  if (level === 'collect-basic' && !opts.unit) {
     count = rnd(2, 9);
   } else if (u.label === '0.1') {
     count = rnd(11, 39); // くり上がる量
@@ -83,7 +91,7 @@ export function generateCollect(level: CollectLevel): CollectProblem {
     count = rnd(11, 9999);
   }
   const value = fromMilli(count * u.milli);
-  const direction: 'count' | 'value' = Math.random() < 0.5 ? 'count' : 'value';
+  const direction: 'count' | 'value' = opts.direction ?? (Math.random() < 0.5 ? 'count' : 'value');
   return {
     direction,
     unitLabel: u.label,
@@ -123,12 +131,13 @@ export function scaleOpLabel(op: ScaleOp): string {
   return SCALE_LABELS[op];
 }
 
-export function generateScale(level: ScaleLevel): ScaleProblem {
+export function generateScale(level: ScaleLevel, forceOp?: ScaleOp): ScaleProblem {
   const decimals = rnd(1, 2);
   const milli = decimals === 1 ? rnd(11, 98) * 100 : rnd(105, 989) * 10;
   const value = fromMilli(milli);
   let op: ScaleOp;
-  if (level === 'scale-10') op = '×10';
+  if (forceOp) op = forceOp;
+  else if (level === 'scale-10') op = '×10';
   else if (level === 'scale-tenth') op = '÷10';
   else if (level === 'scale-100') op = Math.random() < 0.5 ? '×100' : '÷100';
   else op = (['×10', '÷10', '×100', '÷100'] as ScaleOp[])[rnd(0, 3)];
@@ -233,7 +242,7 @@ function placeIdLabel(place: number): { label: string; speak: string } {
   }
 }
 
-export function generatePlaceId(level: PlaceIdLevel): PlaceIdProblem {
+export function generatePlaceId(level: PlaceIdLevel, forcePlace?: number): PlaceIdProblem {
   const decimals = level === 'placeid-2' ? 2 : 3;
   const digits = [rnd(1, 9)];
   for (let i = 1; i <= decimals; i++) digits.push(rnd(0, 9));
@@ -243,8 +252,8 @@ export function generatePlaceId(level: PlaceIdLevel): PlaceIdProblem {
   if (decimals >= 2) milli += digits[2] * 10;
   if (decimals >= 3) milli += digits[3];
   const valueStr = fromMilli(milli).toFixed(decimals);
-  // 問う位を選ぶ（0 〜 -decimals）
-  const place = -rnd(0, decimals);
+  // 問う位を選ぶ（0 〜 -decimals）。forcePlace 指定時はその位（例: -3 = 1/1000の位）。
+  const place = forcePlace !== undefined ? forcePlace : -rnd(0, decimals);
   const idx = -place; // digits 配列のインデックス（0=一の位）
   const { label, speak } = placeIdLabel(place);
   return {
@@ -253,5 +262,22 @@ export function generatePlaceId(level: PlaceIdLevel): PlaceIdProblem {
     placeLabel: label,
     placeSpeak: speak,
     answer: String(digits[idx]),
+  };
+}
+
+/* ---------- 数の分解（1.695 = 1を1こ、0.1を6こ…） ---------- */
+export interface DecomposeProblem {
+  valueStr: string; // 例: 1.695
+  // 各位の個数（一の位/小数第一位/第二位/第三位）
+  counts: { ones: number; tenths: number; hundredths: number; thousandths: number };
+}
+
+/** 3桁小数を出し、1・0.1・0.01・0.001 がそれぞれ何個分かを答えさせる（大問1①）。 */
+export function generateDecompose(): DecomposeProblem {
+  const digits = [rnd(1, 9), rnd(0, 9), rnd(0, 9), rnd(1, 9)];
+  const milli = digits[0] * 1000 + digits[1] * 100 + digits[2] * 10 + digits[3];
+  return {
+    valueStr: fromMilli(milli).toFixed(3),
+    counts: { ones: digits[0], tenths: digits[1], hundredths: digits[2], thousandths: digits[3] },
   };
 }
