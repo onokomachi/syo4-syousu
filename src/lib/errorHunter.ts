@@ -7,10 +7,11 @@
 export type FixKind = 'number' | 'sign';
 
 export const REASONS = {
-  POINT: '小数点を わすれた・いちを まちがえた',
-  ALIGN: '位（小数点）を そろえずに 計算した',
+  POINT: '答えの 小数点の うち方を まちがえた',
+  ALIGN: '位を そろえて 計算していない',
   MEGZ: 'けたが長いほうを 大きいと 思った',
   REGROUP: '10こで 1くり上げる「両替」を しなかった',
+  BORROW: 'くり下がりの 計算を まちがえた',
 };
 
 export interface ErrorExample {
@@ -29,7 +30,7 @@ function pick<T>(a: T[]): T { return a[Math.floor(Math.random() * a.length)]; }
 function rnd(min: number, max: number) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
 function buildReasons(correct: string): { options: string[]; index: number } {
-  const all = [REASONS.POINT, REASONS.ALIGN, REASONS.MEGZ, REASONS.REGROUP];
+  const all = [REASONS.POINT, REASONS.ALIGN, REASONS.MEGZ, REASONS.REGROUP, REASONS.BORROW];
   const distractors = all.filter((r) => r !== correct).sort(() => Math.random() - 0.5).slice(0, 2);
   const options = [correct, ...distractors].sort(() => Math.random() - 0.5);
   return { options, index: options.indexOf(correct) };
@@ -141,6 +142,38 @@ const addAlign: Builder = () => {
   };
 };
 
+// ひき算で くり下がりをまちがえる誤り（6.3 − 3.74 = 2.66 → 正 2.56）
+// 桁ちがいの引き算で「借りたのに 上の位を 1 へらし忘れる」典型ミス（結果が +0.1 ずれる）
+const subBorrow: Builder = () => {
+  let ah = 0, bh = 0;
+  for (let t = 0; t < 200; t++) {
+    const wholeA = rnd(3, 8);
+    const tenthA = rnd(0, 5);
+    ah = wholeA * 100 + tenthA * 10; // a は小数第一位（hundredths=0 で必ず借りる）
+    const wholeB = rnd(1, wholeA - 1);
+    const tenthB = rnd(0, 9);
+    const hb = rnd(1, 9); // b の小数第二位（1〜9 で2桁小数に）
+    bh = wholeB * 100 + tenthB * 10 + hb;
+    if (bh < ah) break;
+  }
+  const correctH = ah - bh;
+  const a = ah / 100; // 例 6.3
+  const b = bh / 100; // 例 3.74
+  const correct = correctH / 100;
+  const wrong = (correctH + 10) / 100; // 1 へらし忘れ → +0.1
+  const r = buildReasons(REASONS.BORROW);
+  return {
+    character: pick(CHARS),
+    expr: `${a} − ${b} = ${wrong}`,
+    speak: `${a} ひく ${b} は ${wrong}`,
+    isCorrect: false,
+    fixKind: 'number',
+    correctAnswer: String(correct),
+    reasonOptions: r.options,
+    correctReasonIndex: r.index,
+  };
+};
+
 // 正しい例（混ぜる）
 const correctAdd: Builder = () => {
   const a = rnd(11, 49) / 10, b = rnd(11, 49) / 10;
@@ -154,7 +187,7 @@ const correctCompare: Builder = () => {
   return { character: pick(CHARS), expr: `0.${x} ${rel} 0.${y}`, speak: `0てん${x} は 0てん${y} より`, isCorrect: true, fixKind: 'sign', correctAnswer: rel, reasonOptions: [], correctReasonIndex: -1 };
 };
 
-const ERROR_BUILDERS = [mulPoint, divPoint, compareMegz, collectRegroup, addAlign];
+const ERROR_BUILDERS = [mulPoint, divPoint, compareMegz, collectRegroup, addAlign, subBorrow];
 const CORRECT_BUILDERS = [correctAdd, correctCompare];
 
 /** ランダムに誤り例（ときどき正しい例）を生成。 */

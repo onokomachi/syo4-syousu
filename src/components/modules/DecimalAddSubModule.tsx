@@ -38,6 +38,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   const [phase, setPhase] = useState<'SETUP' | 'SIM'>('SETUP');
   const [level, setLevel] = useState<AddSubLevel>('add-basic');
   const [mode, setMode] = useState<'fixed' | 'adaptive'>('fixed');
+  const [build, setBuild] = useState(false);
   const [problem, setProblem] = useState<AddSubProblem | null>(null);
   const adaptive = useAdaptive(ADDSUB_LEVELS.map((l) => l.id), 'addsub');
   const effectiveLevel = mode === 'adaptive' ? adaptive.level : level;
@@ -45,12 +46,21 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
 
   const start = (lv: AddSubLevel) => {
     setMode('fixed');
+    setBuild(false);
+    setLevel(lv);
+    setProblem(generateAddSub(lv));
+    setPhase('SIM');
+  };
+  const startBuild = (lv: AddSubLevel) => {
+    setMode('fixed');
+    setBuild(true);
     setLevel(lv);
     setProblem(generateAddSub(lv));
     setPhase('SIM');
   };
   const startAdaptive = () => {
     setMode('adaptive');
+    setBuild(false);
     setProblem(generateAddSub(adaptive.level));
     setPhase('SIM');
   };
@@ -88,6 +98,23 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
               />
             ))}
           </div>
+
+          <div className="flex items-center gap-2 mt-8 mb-3 text-emerald-700">
+            <Lightbulb size={20} /><span className="font-black">筆算を 組み立てる（位を そろえる）</span>
+          </div>
+          <p className="text-muted font-medium mb-3 text-sm">数字を 正しい 位の ますに 自分で ならべてから 計算するよ。</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {ADDSUB_LEVELS.map((lv) => (
+              <LevelCard
+                key={lv.id}
+                label={`組み立て・${lv.label}`}
+                desc={lv.description}
+                mastery={getMasteryStreak(`addsub-build-${lv.id}`)}
+                onClick={() => startBuild(lv.id)}
+                accentBorder="hover:border-emerald-400"
+              />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -96,7 +123,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   return (
     <AppShell
       title="小数の たし算・ひき算"
-      subtitle={mode === 'adaptive' ? 'おまかせ' : ADDSUB_LEVELS.find((l) => l.id === level)?.label}
+      subtitle={mode === 'adaptive' ? 'おまかせ' : `${build ? '組み立て・' : ''}${ADDSUB_LEVELS.find((l) => l.id === level)?.label ?? ''}`}
       onBack={() => setPhase('SETUP')}
     >
       <div className="flex flex-col h-full">
@@ -106,9 +133,10 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
         <div className="flex-1 min-h-0">
           {problem && (
             <AddSubSimulator
-              key={`${problem.a}-${problem.b}-${problem.op}`}
+              key={`${problem.a}-${problem.b}-${problem.op}-${build}`}
               problem={problem}
               level={effectiveLevel}
+              buildMode={build}
               onNext={() => setProblem(generateAddSub(effectiveLevel))}
               onResult={mode === 'adaptive' ? adaptive.onResult : undefined}
             />
@@ -122,11 +150,12 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
 interface SimProps {
   problem: AddSubProblem;
   level: AddSubLevel;
+  buildMode?: boolean;
   onNext: () => void;
   onResult?: (perfect: boolean) => void;
 }
 
-const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult }) => {
+const AddSubSimulator: React.FC<SimProps> = ({ problem, level, buildMode = false, onNext, onResult }) => {
   const model = useMemo(() => buildColumns(problem), [problem]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [finished, setFinished] = useState(false);
@@ -134,13 +163,57 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
   const [hint, setHint] = useState<string | null>(null);
   const [shakePlace, setShakePlace] = useState<number | null>(null);
 
+  // 組み立てモード：A・B の桁を正しい位に置いてから計算する
+  const [stage, setStage] = useState<'A' | 'B' | 'COMPUTE'>(buildMode ? 'A' : 'COMPUTE');
+  const [placedA, setPlacedA] = useState<Record<number, string>>({});
+  const [placedB, setPlacedB] = useState<Record<number, string>>({});
+
   const recordResult = useProgressStore((s) => s.recordResult);
   const ttsEnabled = useSettingsStore((s) => s.ttsEnabled);
+
+  // 置くべき桁（高い位→低い位）
+  const digitsA = useMemo(() => model.rowA.filter((c) => c.kind === 'digit').sort((x, y) => y.place - x.place), [model]);
+  const digitsB = useMemo(() => model.rowB.filter((c) => c.kind === 'digit').sort((x, y) => y.place - x.place), [model]);
+  const nextDigitA = digitsA[Object.keys(placedA).length];
+  const nextDigitB = digitsB[Object.keys(placedB).length];
 
   const intPlaces = model.places.filter((p) => p >= 0);
   const decPlaces = model.places.filter((p) => p < 0);
   const gridWidth = OP_W + intPlaces.length * CELL_W + DOT_W + decPlaces.length * CELL_W;
   const dotLeft = OP_W + intPlaces.length * CELL_W + DOT_W / 2;
+
+  // 組み立てモードで、ある位のセルをタップして桁を置く
+  const placeOperand = (place: number) => {
+    if (finished) return;
+    if (stage === 'A') {
+      if (!nextDigitA) return;
+      if (place === nextDigitA.place) {
+        const next = { ...placedA, [place]: nextDigitA.digit! };
+        setPlacedA(next); setHint(null);
+        if (Object.keys(next).length === digitsA.length) { setStage('B'); }
+        else playCorrect();
+      } else {
+        placeError();
+      }
+    } else if (stage === 'B') {
+      if (!nextDigitB) return;
+      if (place === nextDigitB.place) {
+        const next = { ...placedB, [place]: nextDigitB.digit! };
+        setPlacedB(next); setHint(null);
+        if (Object.keys(next).length === digitsB.length) { setStage('COMPUTE'); }
+        else playCorrect();
+      } else {
+        placeError();
+      }
+    }
+  };
+  const placeError = () => {
+    playSoftTry();
+    setMistakes((m) => m + 1);
+    setShakePlace(stage === 'A' ? (nextDigitA?.place ?? null) : (nextDigitB?.place ?? null));
+    setTimeout(() => setShakePlace(null), 450);
+    setHint('小数点を そろえて、同じ位どうしを たてに そろえよう。一の位は 小数点の すぐ左だよ。');
+  };
 
   // 入力対象（右端＝最も低い位から）
   const activePlace = useMemo(() => {
@@ -157,6 +230,7 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
   const opWord = problem.op === '+' ? 'たす' : 'ひく';
 
   const handleInput = (d: string) => {
+    if (stage !== 'COMPUTE') return;
     if (finished || activePlace === null || !activeCell || d === '.') return;
     if (d === activeCell.expected) {
       const next = { ...answers, [activePlace]: d };
@@ -197,7 +271,7 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     recordResult({
       moduleId: 'decimal-addsub',
-      skillId: `addsub-${level}`,
+      skillId: buildMode ? `addsub-build-${level}` : `addsub-${level}`,
       label: `${problem.a} ${problem.op} ${problem.b}`,
       correct: mistakes === 0,
     });
@@ -209,6 +283,9 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
     setFinished(false);
     setMistakes(0);
     setHint(null);
+    setStage(buildMode ? 'A' : 'COMPUTE');
+    setPlacedA({});
+    setPlacedB({});
   };
 
   const Cell: React.FC<{ kind: string; digit?: string; isDot?: boolean; highlight?: boolean }> = ({
@@ -237,20 +314,36 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
     );
   };
 
-  const renderRow = (cells: { place: number; kind: string; digit?: string }[], op?: string) => (
+  const renderOperandCell = (cells: { place: number; kind: string; digit?: string }[], p: number, rowKey: 'A' | 'B') => {
+    const c = cells.find((x) => x.place === p)!;
+    if (!buildMode) return <Cell key={p} kind={c.kind} digit={c.digit} />;
+    const placedMap = rowKey === 'A' ? placedA : placedB;
+    const isTappable = !finished && stage === rowKey;
+    const placedDigit = placedMap[p];
+    return (
+      <button
+        key={p}
+        onClick={() => isTappable && placeOperand(p)}
+        disabled={!isTappable}
+        style={{ width: CELL_W, height: ROW_H }}
+        className={`flex items-center justify-center text-4xl font-black rounded-xl ${
+          isTappable ? 'cursor-pointer ring-2 ring-emerald-200 ring-inset bg-emerald-50/40 hover:bg-emerald-100' : ''
+        }`}
+      >
+        {placedDigit !== undefined ? <span className="text-content">{placedDigit}</span>
+          : c.kind === 'helperZero' ? <span className="text-faint">0</span> : null}
+      </button>
+    );
+  };
+
+  const renderRow = (cells: { place: number; kind: string; digit?: string }[], opts: { op?: string; rowKey: 'A' | 'B' }) => (
     <div className="flex items-center" style={{ width: gridWidth, height: ROW_H }}>
       <div style={{ width: OP_W, height: ROW_H }} className="flex items-center justify-center text-3xl font-black text-muted">
-        {op ?? ''}
+        {opts.op ?? ''}
       </div>
-      {intPlaces.map((p) => {
-        const c = cells.find((x) => x.place === p)!;
-        return <Cell key={p} kind={c.kind} digit={c.digit} />;
-      })}
+      {intPlaces.map((p) => renderOperandCell(cells, p, opts.rowKey))}
       <Cell kind="dot" isDot />
-      {decPlaces.map((p) => {
-        const c = cells.find((x) => x.place === p)!;
-        return <Cell key={p} kind={c.kind} digit={c.digit} />;
-      })}
+      {decPlaces.map((p) => renderOperandCell(cells, p, opts.rowKey))}
     </div>
   );
 
@@ -274,8 +367,8 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
               style={{ left: dotLeft - 2 }}
             />
             <div className="relative z-10">
-              {renderRow(model.rowA)}
-              {renderRow(model.rowB, problem.op)}
+              {renderRow(model.rowA, { rowKey: 'A' })}
+              {renderRow(model.rowB, { op: problem.op, rowKey: 'B' })}
               {/* 横線 */}
               <div className="border-b-4 border-slate-800 rounded-full" style={{ width: gridWidth }} />
               {/* 答えの行 */}
@@ -290,14 +383,14 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
                       transition={{ duration: 0.4 }}
                       style={{ width: CELL_W, height: ROW_H }}
                       className={`flex items-center justify-center text-4xl font-black ${
-                        a.active && activePlace === p && !finished
+                        a.active && activePlace === p && !finished && stage === 'COMPUTE'
                           ? 'bg-emerald-50 ring-4 ring-emerald-400 ring-inset rounded-xl'
                           : ''
                       }`}
                     >
                       {answers[p] !== undefined ? (
                         <span className="text-emerald-600">{answers[p]}</span>
-                      ) : a.active && activePlace === p && !finished ? (
+                      ) : a.active && activePlace === p && !finished && stage === 'COMPUTE' ? (
                         <span className="text-emerald-300 animate-pulse">？</span>
                       ) : null}
                     </motion.div>
@@ -313,14 +406,14 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
                       transition={{ duration: 0.4 }}
                       style={{ width: CELL_W, height: ROW_H }}
                       className={`flex items-center justify-center text-4xl font-black ${
-                        a.active && activePlace === p && !finished
+                        a.active && activePlace === p && !finished && stage === 'COMPUTE'
                           ? 'bg-emerald-50 ring-4 ring-emerald-400 ring-inset rounded-xl'
                           : ''
                       }`}
                     >
                       {answers[p] !== undefined ? (
                         <span className="text-emerald-600">{answers[p]}</span>
-                      ) : a.active && activePlace === p && !finished ? (
+                      ) : a.active && activePlace === p && !finished && stage === 'COMPUTE' ? (
                         <span className="text-emerald-300 animate-pulse">？</span>
                       ) : null}
                     </motion.div>
@@ -350,6 +443,27 @@ const AddSubSimulator: React.FC<SimProps> = ({ problem, level, onNext, onResult 
               つぎの もんだい
             </button>
           </div>
+        ) : stage !== 'COMPUTE' ? (
+          <>
+            <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-emerald-700 font-black text-lg flex items-center gap-2">
+                  <Lightbulb size={20} /> {stage === 'A' ? '上の数を ならべよう' : '下の数を ならべよう'}
+                </h3>
+                <SpeakButton text={hint ?? `${stage === 'A' ? problem.a : problem.b} の 数字を 正しい 位に おこう`} />
+              </div>
+              <p className="text-muted font-bold leading-relaxed">
+                {hint ?? `${stage === 'A' ? problem.a : problem.b} を 位ごとに 上から じゅんに おくよ。小数点に そろえてね。`}
+              </p>
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center gap-3">
+              <p className="text-muted font-bold">つぎに おく 数字</p>
+              <div className="w-24 h-24 rounded-2xl bg-emerald-500 text-white flex items-center justify-center text-6xl font-black shadow-lg">
+                {(stage === 'A' ? nextDigitA : nextDigitB)?.digit ?? '✓'}
+              </div>
+              <p className="text-faint font-bold text-sm">↑ 上の 筆算の 正しい 位の ますを タップ</p>
+            </div>
+          </>
         ) : (
           <>
             <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">

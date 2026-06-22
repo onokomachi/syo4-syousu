@@ -95,13 +95,14 @@ export function buildColumns(problem: AddSubProblem): ColumnModel {
   return { places, decimalPointAfter: 0, rowA, rowB, answer, result: R / scale };
 }
 
-export type AddSubLevel = 'add-basic' | 'add-diff' | 'sub-basic' | 'sub-whole';
+export type AddSubLevel = 'add-basic' | 'add-diff' | 'sub-basic' | 'sub-diff' | 'sub-whole';
 
 export const ADDSUB_LEVELS: { id: AddSubLevel; label: string; description: string }[] = [
   { id: 'add-basic', label: 'たし算 ①', description: '小数第一位どうしのたし算' },
   { id: 'add-diff', label: 'たし算 ②（桁ちがい）', description: '3.5 + 4.18 のような問題' },
   { id: 'sub-basic', label: 'ひき算 ①', description: '小数第一位どうしのひき算' },
-  { id: 'sub-whole', label: 'ひき算 ②（空位）', description: '6 − 2.45 のような問題' },
+  { id: 'sub-diff', label: 'ひき算 ②（桁ちがい）', description: '6.17 − 3.8 のような問題' },
+  { id: 'sub-whole', label: 'ひき算 ③（空位）', description: '6 − 2.45・9 − 0.058 など' },
 ];
 
 function rndInt(min: number, max: number) {
@@ -127,9 +128,23 @@ export function generateAddSub(level: AddSubLevel): AddSubProblem {
       if (b > a) [a, b] = [b, a];
       return { a, b, op: '-' };
     }
+    case 'sub-diff': {
+      // 桁ちがいのひき算（6.17 − 3.8 / 3.02 − 2.37）。少なくとも片方は小数第二位。
+      const decA = Math.random() < 0.5 ? 2 : 1;
+      const decB = decA === 1 ? 2 : (Math.random() < 0.5 ? 1 : 2);
+      let a = rndInt(2 * 10 ** decA, 9 * 10 ** decA) / 10 ** decA;
+      let b = rndInt(1 * 10 ** decB, 8 * 10 ** decB) / 10 ** decB;
+      if (b >= a) [a, b] = [b, a];
+      if (b >= a) b = Math.round((a - 0.1) * 100) / 100;
+      return { a, b, op: '-' };
+    }
     case 'sub-whole': {
+      // 6 − 2.45 や 9 − 0.058（小数第三位・空位0）
       const a = rndInt(3, 9); // 整数
-      const b = rndInt(105, Math.max(106, a * 100 - 5)) / 100; // a 未満の小数第二位
+      const dec = Math.random() < 0.5 ? 2 : 3; // 小数第二位 or 第三位
+      const maxB = a * 10 ** dec - 1;
+      const minB = 10 ** (dec - 1) + 5; // 末尾0を避けつつ範囲確保
+      const b = rndInt(Math.min(minB, maxB), maxB) / 10 ** dec;
       return { a, b, op: '-' };
     }
   }

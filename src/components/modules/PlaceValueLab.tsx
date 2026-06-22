@@ -6,22 +6,25 @@
  */
 import React, { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { ChevronLeft, RotateCcw, Plus, Minus, Lightbulb, LayoutGrid, Boxes, ArrowLeftRight } from 'lucide-react';
+import { ChevronLeft, RotateCcw, Plus, Minus, Lightbulb, LayoutGrid, Boxes, ArrowLeftRight, Ruler, Hash } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AppShell } from '../shared/AppShell';
 import { SpeakButton } from '../shared/SpeakButton';
 import { AnswerEntry } from '../shared/AnswerEntry';
+import { Keypad } from '../shared/Keypad';
 import {
   PLACE_UNITS, COMPOSE_LEVELS, ComposeLevel, ComposeProblem, generateCompose, fromMilli,
   COLLECT_LEVELS, CollectLevel, CollectProblem, generateCollect,
-  SCALE_LEVELS, ScaleLevel, ScaleProblem, generateScale,
+  SCALE_LEVELS, ScaleLevel, ScaleProblem, generateScale, scaleOpLabel,
+  UNIT_LEVELS, UnitLevel, UnitProblem, generateUnit,
+  PLACEID_LEVELS, PlaceIdLevel, PlaceIdProblem, generatePlaceId,
 } from '../../lib/placeValue';
 import { useProgressStore } from '../../store/progressStore';
 import { LevelCard } from '../ui/primitives';
 import { playClear, playSoftTry } from '../../lib/sound';
 
 interface Props { onExit: () => void; }
-type Activity = 'compose' | 'collect' | 'scale';
+type Activity = 'compose' | 'collect' | 'scale' | 'unit' | 'placeid';
 
 export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
   const [phase, setPhase] = useState<'SETUP' | 'SIM'>('SETUP');
@@ -29,13 +32,19 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
   const [composeLevel, setComposeLevel] = useState<ComposeLevel>('compose-2');
   const [collectLevel, setCollectLevel] = useState<CollectLevel>('collect-basic');
   const [scaleLevel, setScaleLevel] = useState<ScaleLevel>('scale-10');
+  const [unitLevel, setUnitLevel] = useState<UnitLevel>('unit-length');
+  const [placeidLevel, setPlaceidLevel] = useState<PlaceIdLevel>('placeid-2');
   const [compose, setCompose] = useState<ComposeProblem | null>(null);
   const [collect, setCollect] = useState<CollectProblem | null>(null);
   const [scale, setScale] = useState<ScaleProblem | null>(null);
+  const [unit, setUnit] = useState<UnitProblem | null>(null);
+  const [placeid, setPlaceid] = useState<PlaceIdProblem | null>(null);
 
   const startCompose = (lv: ComposeLevel) => { setActivity('compose'); setComposeLevel(lv); setCompose(generateCompose(lv)); setPhase('SIM'); };
   const startCollect = (lv: CollectLevel) => { setActivity('collect'); setCollectLevel(lv); setCollect(generateCollect(lv)); setPhase('SIM'); };
   const startScale = (lv: ScaleLevel) => { setActivity('scale'); setScaleLevel(lv); setScale(generateScale(lv)); setPhase('SIM'); };
+  const startUnit = (lv: UnitLevel) => { setActivity('unit'); setUnitLevel(lv); setUnit(generateUnit(lv)); setPhase('SIM'); };
+  const startPlaceid = (lv: PlaceIdLevel) => { setActivity('placeid'); setPlaceidLevel(lv); setPlaceid(generatePlaceId(lv)); setPhase('SIM'); };
 
   const getMasteryStreak = useProgressStore((s) => s.getMasteryStreak);
 
@@ -63,9 +72,19 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
               <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`collect-${lv.id}`)} onClick={() => startCollect(lv.id)} accentBorder="hover:border-rose-400" />
             ))}
           </Group>
-          <Group icon={<ArrowLeftRight size={20} />} title="10倍・10分の1">
+          <Group icon={<Hash size={20} />} title="○の位の数字">
+            {PLACEID_LEVELS.map((lv) => (
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`placeid-${lv.id}`)} onClick={() => startPlaceid(lv.id)} accentBorder="hover:border-rose-400" />
+            ))}
+          </Group>
+          <Group icon={<ArrowLeftRight size={20} />} title="10倍・10分の1・100倍・1/100">
             {SCALE_LEVELS.map((lv) => (
               <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`scale-${lv.id}`)} onClick={() => startScale(lv.id)} accentBorder="hover:border-rose-400" />
+            ))}
+          </Group>
+          <Group icon={<Ruler size={20} />} title="たんいと小数（長さ・重さ）">
+            {UNIT_LEVELS.map((lv) => (
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`unit-${lv.id}`)} onClick={() => startUnit(lv.id)} accentBorder="hover:border-rose-400" />
             ))}
           </Group>
         </div>
@@ -75,13 +94,17 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
 
   const subtitle = activity === 'compose' ? COMPOSE_LEVELS.find((l) => l.id === composeLevel)?.label
     : activity === 'collect' ? COLLECT_LEVELS.find((l) => l.id === collectLevel)?.label
-    : SCALE_LEVELS.find((l) => l.id === scaleLevel)?.label;
+    : activity === 'scale' ? SCALE_LEVELS.find((l) => l.id === scaleLevel)?.label
+    : activity === 'unit' ? UNIT_LEVELS.find((l) => l.id === unitLevel)?.label
+    : PLACEID_LEVELS.find((l) => l.id === placeidLevel)?.label;
 
   return (
     <AppShell title="位取りラボ" subtitle={subtitle} onBack={() => setPhase('SETUP')}>
       {activity === 'compose' && compose && <ComposeActivity key={compose.target} problem={compose} level={composeLevel} onNext={() => setCompose(generateCompose(composeLevel))} />}
       {activity === 'collect' && collect && <CollectActivity key={collect.value + collect.direction + collect.unitLabel} problem={collect} level={collectLevel} onNext={() => setCollect(generateCollect(collectLevel))} />}
       {activity === 'scale' && scale && <ScaleActivity key={scale.value + scale.op} problem={scale} level={scaleLevel} onNext={() => setScale(generateScale(scaleLevel))} />}
+      {activity === 'unit' && unit && <UnitActivity key={unit.promptStr} problem={unit} level={unitLevel} onNext={() => setUnit(generateUnit(unitLevel))} />}
+      {activity === 'placeid' && placeid && <PlaceIdActivity key={placeid.valueStr + placeid.place} problem={placeid} level={placeidLevel} onNext={() => setPlaceid(generatePlaceId(placeidLevel))} />}
     </AppShell>
   );
 };
@@ -218,7 +241,8 @@ const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel; onNext
   const [hint, setHint] = useState<string | null>(null);
   const recordResult = useProgressStore((s) => s.recordResult);
 
-  const question = problem.op === '×10' ? `${problem.value} を 10倍すると？` : `${problem.value} の 10分の1は？`;
+  const question = `${problem.value} を ${scaleOpLabel(problem.op)}は？`;
+  const isMul = problem.op === '×10' || problem.op === '×100';
 
   const submit = (v: string) => {
     if (Number(v) === Number(problem.answer)) {
@@ -228,7 +252,7 @@ const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel; onNext
       recordResult({ moduleId: 'place-value', skillId: `scale-${level}`, label: question, correct: true });
     } else {
       playSoftTry();
-      setHint(problem.op === '×10' ? '10倍すると 各位が 1つ 左へ（小数点は 右へ）うごくよ。' : '10分の1にすると 各位が 1つ 右へ（小数点は 左へ）うごくよ。');
+      setHint(isMul ? '倍にすると 各位が 左へ（小数点は 右へ）うごくよ。10倍は1つ、100倍は2つ。' : '小さくすると 各位が 右へ（小数点は 左へ）うごくよ。1/10は1つ、1/100は2つ。');
     }
   };
 
@@ -249,6 +273,104 @@ const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel; onNext
             <>
               {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} /></div>}
               <AnswerEntry onSubmit={submit} allowDecimal accentText="text-rose-600" />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ---------------- たんいと小数（長さ・重さ） ---------------- */
+const UnitActivity: React.FC<{ problem: UnitProblem; level: UnitLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+  const [solved, setSolved] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+  const recordResult = useProgressStore((s) => s.recordResult);
+
+  const question = `${problem.promptStr} は 何 ${problem.answerUnit}？`;
+
+  const submit = (v: string) => {
+    if (Number(v) === Number(problem.answer)) {
+      setSolved(true);
+      playClear();
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      recordResult({ moduleId: 'place-value', skillId: `unit-${level}`, label: question, correct: true });
+    } else {
+      playSoftTry();
+      setHint(problem.answerUnit === 'm'
+        ? '1m = 100cm。100cm で 1m（小数点の左）、のこりの cm は 小数で 表すよ。'
+        : '1kg = 1000g。1000g で 1kg（小数点の左）、のこりの g は 小数で 表すよ。');
+    }
+  };
+
+  return (
+    <div className="h-full overflow-y-auto p-4 md:p-8">
+      <div className="max-w-xl mx-auto">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <h2 className="text-3xl font-black text-content tabular-nums">{question}</h2>
+            <SpeakButton text={problem.promptSpeak} />
+          </div>
+          {solved ? (
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl">{problem.promptStr} = {problem.answer} {problem.answerUnit}　せいかい！</div>
+              <div><button onClick={onNext} className="mt-6 px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button></div>
+            </div>
+          ) : (
+            <>
+              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} /></div>}
+              <AnswerEntry onSubmit={submit} allowDecimal accentText="text-rose-600" />
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ---------------- ○の位の数字は？ ---------------- */
+const PlaceIdActivity: React.FC<{ problem: PlaceIdProblem; level: PlaceIdLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+  const [solved, setSolved] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+  const [shake, setShake] = useState(false);
+  const recordResult = useProgressStore((s) => s.recordResult);
+
+  const question = `${problem.valueStr} の ${problem.placeLabel} の 数字は？`;
+
+  const handle = (d: string) => {
+    if (solved || d === '.') return;
+    if (d === problem.answer) {
+      setSolved(true);
+      playClear();
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      recordResult({ moduleId: 'place-value', skillId: `placeid-${level}`, label: question, correct: true });
+    } else {
+      playSoftTry();
+      setShake(true); setTimeout(() => setShake(false), 450);
+      setHint('一の位から 右へ、小数第一位・第二位…と かぞえて、その位の 数字を 見つけよう。');
+    }
+  };
+
+  return (
+    <div className="h-full overflow-y-auto p-4 md:p-8">
+      <div className="max-w-xl mx-auto">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <h2 className="text-2xl font-black text-content">{question}</h2>
+            <SpeakButton text={`${problem.valueStr} の ${problem.placeSpeak} の 数字は`} />
+          </div>
+          <motion.div animate={shake ? { x: [0, -8, 8, -8, 0] } : { x: 0 }} className="text-center text-6xl font-black text-rose-500 tabular-nums mb-6">
+            {problem.valueStr}
+          </motion.div>
+          {solved ? (
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl">こたえ：{problem.answer}　せいかい！</div>
+              <div><button onClick={onNext} className="mt-6 px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button></div>
+            </div>
+          ) : (
+            <>
+              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} /></div>}
+              <Keypad onInput={handle} onBackspace={() => {}} allowDecimal={false} />
             </>
           )}
         </div>
