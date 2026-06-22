@@ -9,7 +9,6 @@ import { motion } from 'motion/react';
 import { ChevronLeft, RotateCcw, Lightbulb, Ruler, Scale } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AppShell } from '../shared/AppShell';
-import { SpeakButton } from '../shared/SpeakButton';
 import { AnswerEntry } from '../shared/AnswerEntry';
 import {
   COMPARE_LEVELS, CompareLevel, ComparePair, generateCompare, relation,
@@ -288,7 +287,6 @@ export const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel;
               {solved ? correct : '?'}
             </span>
             <span className="text-5xl md:text-6xl font-black text-rose-500 tabular-nums">{pair.bStr}</span>
-            <SpeakButton text={`${pair.aStr} と ${pair.bStr} を くらべよう`} />
           </div>
 
           {!solved && (
@@ -323,7 +321,7 @@ export const CompareActivity: React.FC<{ pair: ComparePair; level: CompareLevel;
           {solved && (
             <div className="mt-4 text-center">
               <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl">
-                {verdict}<SpeakButton text={verdict} />
+                {verdict}
               </div>
               <div>
                 <button onClick={onNext} className="mt-6 px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button>
@@ -371,7 +369,6 @@ const LineActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: (
             <h2 className="text-2xl font-black text-content">
               <span className="text-amber-600 text-4xl tabular-nums">{targetStr}</span> は どこかな？
             </h2>
-            <SpeakButton text={`${targetStr} は どこかな。正しい 目もりを タップしよう`} />
           </div>
           <p className="text-center text-muted font-bold mb-8">正しい 目もりの ●を タップしよう</p>
 
@@ -387,7 +384,6 @@ const LineActivity: React.FC<{ problem: LineProblem; level: LineLevel; onNext: (
             <div className="mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2 justify-center">
               <Lightbulb className="text-amber-500 shrink-0" size={20} />
               <p className="text-muted font-bold">{hint}</p>
-              <SpeakButton text={hint} />
             </div>
           )}
 
@@ -437,7 +433,6 @@ export const LineReadActivity: React.FC<{ problem: LineProblem; level: LineLevel
         <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-8 md:p-12">
           <div className="flex items-center justify-center gap-3 mb-2">
             <h2 className="text-2xl font-black text-content">◆の めもりは いくつ？</h2>
-            <SpeakButton text="ダイヤの ところの めもりは いくつかな。数を こたえよう" />
           </div>
           <p className="text-center text-muted font-bold mb-8">数直線を よんで キーパッドで こたえてね</p>
 
@@ -451,7 +446,6 @@ export const LineReadActivity: React.FC<{ problem: LineProblem; level: LineLevel
             <div className="mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2 justify-center">
               <Lightbulb className="text-amber-500 shrink-0" size={20} />
               <p className="text-muted font-bold">{hint}</p>
-              <SpeakButton text={hint} />
             </div>
           )}
 
@@ -524,7 +518,6 @@ export const OrderActivity: React.FC<{ problem: OrderProblem; level: OrderLevel;
         <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
           <div className="flex items-center justify-center gap-3 mb-2">
             <h2 className="text-2xl font-black text-content">{dirLabel}に ならべよう</h2>
-            <SpeakButton text={`${dirLabel}に ならべよう`} />
           </div>
           <p className="text-center text-muted font-bold mb-6">小さい順／大きい順に なるよう カードを 左から タップ</p>
 
@@ -553,7 +546,6 @@ export const OrderActivity: React.FC<{ problem: OrderProblem; level: OrderLevel;
             <div className="mt-2 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2 justify-center">
               <Lightbulb className="text-amber-500 shrink-0" size={20} />
               <p className="text-muted font-bold">{hint}</p>
-              <SpeakButton text={hint} />
             </div>
           )}
 

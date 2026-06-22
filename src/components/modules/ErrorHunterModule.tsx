@@ -8,7 +8,6 @@ import { motion } from 'motion/react';
 import { ChevronLeft, RotateCcw, Lightbulb, Search, Check, X } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AppShell } from '../shared/AppShell';
-import { SpeakButton } from '../shared/SpeakButton';
 import { AnswerEntry } from '../shared/AnswerEntry';
 import { ErrorExample, generateError } from '../../lib/errorHunter';
 import { useProgressStore } from '../../store/progressStore';
@@ -95,14 +94,13 @@ export const ErrorRound: React.FC<{ ex: ErrorExample; onNext: () => void; startS
           <div className="bg-surface-2 rounded-3xl p-6 mb-6 border border-line">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-black text-faint">{ex.character}さんの こたえ</span>
-              <SpeakButton text={ex.speak} />
             </div>
             <div className="text-4xl md:text-5xl font-black text-content text-center tabular-nums py-2">{ex.expr}</div>
           </div>
 
           {hint && (
             <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2">
-              <Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} />
+              <Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p>
             </div>
           )}
 

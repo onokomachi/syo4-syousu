@@ -4,7 +4,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { ChevronLeft, Lightbulb, Sparkles } from 'lucide-react';
-import { SpeakButton } from '../shared/SpeakButton';
 import { praiseClear } from '../../lib/praise';
 
 /* ---- Button ---- */
@@ -41,8 +40,8 @@ export const MasteryBar: React.FC<{ value: number; segments?: number }> = ({ val
   );
 };
 
-/* ---- HintBox（アイコン＋ヒント＋読み上げ） ---- */
-export const HintBox: React.FC<{ children: React.ReactNode; speakText?: string; tone?: 'hint' | 'wrong' }> = ({ children, speakText, tone = 'hint' }) => (
+/* ---- HintBox（アイコン＋ヒント） ---- */
+export const HintBox: React.FC<{ children: React.ReactNode; tone?: 'hint' | 'wrong' }> = ({ children, tone = 'hint' }) => (
   <div className={`rounded-3xl p-5 border flex items-start gap-3 ${tone === 'wrong' ? 'bg-amber-50 border-amber-200' : 'bg-surface-2 border-line'}`}>
     <span className={`shrink-0 w-11 h-11 rounded-full flex items-center justify-center ${tone === 'wrong' ? 'bg-amber-100 text-amber-600' : 'bg-surface-3 text-brand'}`}>
       <Lightbulb size={24} />
@@ -50,7 +49,6 @@ export const HintBox: React.FC<{ children: React.ReactNode; speakText?: string; 
     <div className="flex-1 min-w-0">
       <p className="text-content font-bold leading-relaxed">{children}</p>
     </div>
-    {speakText && <SpeakButton text={speakText} />}
   </div>
 );
 

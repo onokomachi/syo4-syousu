@@ -12,11 +12,9 @@ export type FontScale = 'normal' | 'large' | 'xlarge';
 interface SettingsState {
   theme: Theme;
   fontScale: FontScale;
-  ttsEnabled: boolean;
   soundEnabled: boolean;
   setTheme: (t: Theme) => void;
   setFontScale: (s: FontScale) => void;
-  toggleTts: () => void;
   toggleSound: () => void;
 }
 
@@ -31,11 +29,9 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       theme: 'light',
       fontScale: 'normal',
-      ttsEnabled: true,
       soundEnabled: true,
       setTheme: (theme) => set({ theme }),
       setFontScale: (fontScale) => set({ fontScale }),
-      toggleTts: () => set((s) => ({ ttsEnabled: !s.ttsEnabled })),
       toggleSound: () => set((s) => ({ soundEnabled: !s.soundEnabled })),
     }),
     { name: 'syousu_settings_v1' }

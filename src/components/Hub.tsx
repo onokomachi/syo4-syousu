@@ -6,13 +6,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Divide, PlusSquare, X, Ruler, LayoutGrid, Search, BookOpen,
-  History, Settings as SettingsIcon, Lock, Volume2, ClipboardCheck, ChevronRight,
+  History, Settings as SettingsIcon, Lock, ClipboardCheck, ChevronRight,
 } from 'lucide-react';
 import { MODULES, ModuleMeta } from '../constants';
 import { ModuleId, useProgressStore } from '../store/progressStore';
 import { Settings } from './Settings';
-import { speak } from '../lib/speech';
-import { useSettingsStore } from '../store/settingsStore';
 import { GoalRing } from './ui/GoalRing';
 import { getReviewTargets } from '../lib/review';
 
@@ -38,7 +36,6 @@ const ACCENT: Record<string, { bg: string; text: string; ring: string }> = {
 };
 
 const ModuleCard: React.FC<{ m: ModuleMeta; onClick: () => void; cleared: number }> = ({ m, onClick, cleared }) => {
-  const ttsEnabled = useSettingsStore((s) => s.ttsEnabled);
   const Icon = ICONS[m.icon] ?? Divide;
   const accent = ACCENT[m.accent] ?? ACCENT.blue;
   const isReady = m.status === 'ready';
@@ -49,7 +46,6 @@ const ModuleCard: React.FC<{ m: ModuleMeta; onClick: () => void; cleared: number
       whileTap={isReady ? { scale: 0.98 } : undefined}
       onClick={() => {
         if (!isReady) return;
-        if (ttsEnabled) speak(m.title);
         onClick();
       }}
       className={`group relative text-left p-6 rounded-[28px] bg-surface border border-line shadow-sm ring-2 ring-transparent transition-all ${
@@ -79,7 +75,6 @@ const ModuleCard: React.FC<{ m: ModuleMeta; onClick: () => void; cleared: number
 
 export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog, onStartTest }) => {
   const [showSettings, setShowSettings] = useState(false);
-  const ttsEnabled = useSettingsStore((s) => s.ttsEnabled);
   const getModuleCount = useProgressStore((s) => s.getModuleCount);
   const mastery = useProgressStore((s) => s.mastery);
   const reviewTargets = getReviewTargets(mastery);
@@ -119,13 +114,6 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog, onStartTest })
             <h1 className="text-4xl md:text-5xl font-black text-content tracking-tight">
               小数<span className="text-blue-600">ランド</span>
             </h1>
-            <button
-              onClick={() => speak('しょうすうランド。すきなところから はじめよう')}
-              className="p-2.5 rounded-full bg-blue-50 text-blue-500 hover:bg-blue-100 transition-all"
-              aria-label="よみあげる"
-            >
-              <Volume2 size={24} />
-            </button>
           </div>
           <p className="text-muted font-medium mt-2">すきなところから はじめよう！</p>
         </div>
@@ -134,7 +122,7 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog, onStartTest })
         <motion.button
           whileHover={{ y: -3 }}
           whileTap={{ scale: 0.99 }}
-          onClick={() => { if (ttsEnabled) speak('本番テストモード'); onStartTest(); }}
+          onClick={onStartTest}
           className="w-full mb-6 p-5 rounded-[24px] bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg hover:shadow-xl text-left transition-all flex items-center gap-4"
         >
           <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shrink-0">
