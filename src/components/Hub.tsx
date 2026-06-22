@@ -96,7 +96,7 @@ export const Hub: React.FC<Props> = ({ onSelectModule, onOpenLog, onStartTest })
             className="flex items-center gap-2 bg-surface px-5 py-2.5 rounded-full shadow-sm border border-line text-muted font-bold hover:bg-surface-2 transition-all"
           >
             <History size={20} />
-            <span>がくしゅうのきろく</span>
+            <span>学習のきろく</span>
           </button>
           <button
             onClick={() => setShowSettings(true)}

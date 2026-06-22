@@ -1,11 +1,12 @@
 /**
- * がくしゅうのきろく。全モジュール横断（progressStore）の進捗・連続記録・履歴・ごほうびバッジ。
+ * 学習のきろく。全モジュール横断（progressStore）の進捗・連続記録・履歴・ごほうびバッジ。
  */
 import React from 'react';
 import { motion } from 'motion/react';
 import {
   ChevronLeft, Calendar, CheckCircle2, History, Trophy, TrendingUp, Award as AwardIcon,
   Star, Sparkles, Award, Flame, Crown, Divide, PlusSquare, X, Ruler, LayoutGrid, Search, BookOpen, Lock,
+  ChevronDown, ClipboardCheck,
 } from 'lucide-react';
 import { useProgressStore, ModuleId } from '../store/progressStore';
 import { MODULES } from '../constants';
@@ -22,6 +23,7 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   const maxStreak = useProgressStore((s) => s.maxStreak);
   const currentStreak = useProgressStore((s) => s.currentStreak);
   const [scope, setScope] = React.useState<'all' | 'today'>('all');
+  const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -40,7 +42,7 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   const badges = computeBadges({ totalCorrect, maxStreak, moduleCounts });
   const earnedCount = badges.filter((b) => b.earned).length;
 
-  const moduleTitle = (id: ModuleId) => MODULES.find((m) => m.id === id)?.title ?? id;
+  const moduleTitle = (id: ModuleId) => MODULES.find((m) => m.id === id)?.title ?? (id === 'mock-test' ? 'テスト' : id);
 
   const formatDate = (ts: number) => {
     const d = new Date(ts);
@@ -54,7 +56,7 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
           <ChevronLeft size={20} /><span>もどる</span>
         </button>
         <div className="flex items-center gap-2 text-blue-600">
-          <History size={24} /><h2 className="text-xl font-black tracking-tight">がくしゅうのきろく</h2>
+          <History size={24} /><h2 className="text-xl font-black tracking-tight">学習のきろく</h2>
         </div>
         <div className="w-20" />
       </div>
@@ -135,28 +137,64 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
                 <p className="text-muted font-bold">まだ きろくが ありません。やってみよう！</p>
               </div>
             ) : (
-              logs.slice(0, 50).map((log, idx) => (
-                <motion.div key={log.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(idx * 0.03, 0.5) }}
-                  className="bg-surface p-4 rounded-2xl shadow-sm border border-line flex items-center justify-between">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${log.correct ? 'bg-emerald-50 text-emerald-500' : 'bg-surface-2 text-faint'}`}>
-                      <CheckCircle2 size={20} />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-faint text-xs font-bold">{formatDate(log.ts)}</span>
-                        <span className="px-2 py-0.5 bg-surface-3 text-muted rounded text-[10px] font-black truncate">{moduleTitle(log.moduleId)}</span>
+              logs.slice(0, 50).map((log, idx) => {
+                const isTest = !!log.detail;
+                const expanded = expandedId === log.id;
+                return (
+                  <motion.div key={log.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(idx * 0.03, 0.5) }}
+                    className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden">
+                    <div
+                      role={isTest ? 'button' : undefined}
+                      onClick={isTest ? () => setExpandedId(expanded ? null : log.id) : undefined}
+                      className={`p-4 flex items-center justify-between ${isTest ? 'cursor-pointer hover:bg-surface-2 transition-colors' : ''}`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isTest ? 'bg-blue-50 text-blue-500' : log.correct ? 'bg-emerald-50 text-emerald-500' : 'bg-surface-2 text-faint'}`}>
+                          {isTest ? <ClipboardCheck size={20} /> : <CheckCircle2 size={20} />}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-faint text-xs font-bold">{formatDate(log.ts)}</span>
+                            <span className="px-2 py-0.5 bg-surface-3 text-muted rounded text-[10px] font-black truncate">{moduleTitle(log.moduleId)}</span>
+                          </div>
+                          <div className="text-lg font-black text-content truncate">{log.label}</div>
+                        </div>
                       </div>
-                      <div className="text-lg font-black text-content truncate">{log.label}</div>
+                      {isTest ? (
+                        <div className="flex items-center gap-2 shrink-0 ml-2">
+                          <span className="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full text-sm font-black tabular-nums">{log.detail!.total}/{log.detail!.totalMax}点</span>
+                          <ChevronDown size={18} className={`text-faint transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                        </div>
+                      ) : log.correct ? (
+                        <div className="flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-xs font-black shrink-0 ml-2">
+                          <AwardIcon size={14} /><span>ノーミス！</span>
+                        </div>
+                      ) : null}
                     </div>
-                  </div>
-                  {log.correct && (
-                    <div className="flex items-center gap-1 bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full text-xs font-black shrink-0 ml-2">
-                      <AwardIcon size={14} /><span>ノーミス！</span>
-                    </div>
-                  )}
-                </motion.div>
-              ))
+
+                    {isTest && expanded && (
+                      <div className="px-4 pb-4 border-t border-line/60 pt-3 space-y-1">
+                        {log.detail!.steps.map((st, i) => (
+                          <div key={i} className="flex items-start justify-between gap-2 py-1.5 border-b border-line/40 last:border-0">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] font-black text-faint">大問{st.daimon}{st.sub ?? ''}</span>
+                                <span className="text-xs font-bold text-content truncate">{st.title}</span>
+                              </div>
+                              <div className="text-xs text-muted font-bold mt-0.5">
+                                {st.q}　→　<span className="text-content">{st.a}</span>
+                              </div>
+                            </div>
+                            <span className={`font-black tabular-nums shrink-0 text-sm ${st.section === '参考' ? (st.correct ? 'text-emerald-600' : 'text-amber-500') : st.correct ? 'text-emerald-600' : 'text-rose-400'}`}>
+                              {st.section === '参考' ? (st.correct ? '○ 参考' : '△ 参考') : `${st.correct ? '○' : '×'} ${st.earned}/${st.points}`}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })
             )}
           </div>
         </div>
