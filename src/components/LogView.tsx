@@ -21,6 +21,7 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   const logs = useProgressStore((s) => s.logs);
   const maxStreak = useProgressStore((s) => s.maxStreak);
   const currentStreak = useProgressStore((s) => s.currentStreak);
+  const [scope, setScope] = React.useState<'all' | 'today'>('all');
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -29,8 +30,12 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   const totalCorrect = logs.filter((l) => l.correct).length;
   const countToday = logs.filter((l) => l.ts >= todayTs && l.correct).length;
 
+  // バッジ判定は累計（all-time）で固定
   const moduleCounts: Record<string, number> = {};
   MODULES.forEach((m) => (moduleCounts[m.id] = logs.filter((l) => l.moduleId === m.id && l.correct).length));
+  // 表示用は すべて／今日 で切替
+  const moduleCountsView: Record<string, number> = {};
+  MODULES.forEach((m) => (moduleCountsView[m.id] = logs.filter((l) => l.moduleId === m.id && l.correct && (scope === 'all' || l.ts >= todayTs)).length));
 
   const badges = computeBadges({ totalCorrect, maxStreak, moduleCounts });
   const earnedCount = badges.filter((b) => b.earned).length;
@@ -66,8 +71,19 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
 
           {/* モジュール別 */}
           <div>
-            <div className="flex items-center gap-2 px-2 mb-3">
+            <div className="flex items-center justify-between gap-2 px-2 mb-3">
               <span className="text-faint text-xs font-black uppercase tracking-widest">コースべつ クリア数</span>
+              <div className="inline-flex rounded-full bg-surface-3 p-1">
+                {(['all', 'today'] as const).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setScope(s)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-black transition-colors ${scope === s ? 'bg-blue-600 text-white shadow' : 'text-muted hover:text-content'}`}
+                  >
+                    {s === 'all' ? 'すべて' : '今日'}
+                  </button>
+                ))}
+              </div>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {MODULES.map((m) => {
@@ -77,7 +93,7 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
                     <div className="w-10 h-10 rounded-xl bg-surface-2 text-muted flex items-center justify-center shrink-0"><Icon size={20} /></div>
                     <div className="min-w-0">
                       <div className="text-xs font-bold text-muted truncate">{m.title}</div>
-                      <div className="text-xl font-black text-content tabular-nums">{moduleCounts[m.id]}</div>
+                      <div className="text-xl font-black text-content tabular-nums">{moduleCountsView[m.id]}</div>
                     </div>
                   </div>
                 );

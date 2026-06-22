@@ -82,10 +82,15 @@ export const SetupScreen: React.FC<{ title: string; subtitle?: string; onBack: (
   </div>
 );
 
-/* ---- LevelCard（レベル選択カード＋習熟度） ---- */
-export const LevelCard: React.FC<{ label: string; desc: string; mastery?: number; onClick: () => void; accentBorder?: string }> = ({ label, desc, mastery, onClick, accentBorder = 'hover:border-emerald-400' }) => (
-  <button onClick={onClick} className={`p-5 rounded-3xl bg-surface border-2 border-line ${accentBorder} hover:shadow-lg text-left transition-all active:scale-[0.98]`}>
-    <div className="text-lg font-black text-content mb-1">{label}</div>
+/* ---- LevelCard（レベル選択カード＋習熟度＋きょうのクリア数） ---- */
+export const LevelCard: React.FC<{ label: string; desc: string; mastery?: number; todayCount?: number; onClick: () => void; accentBorder?: string }> = ({ label, desc, mastery, todayCount, onClick, accentBorder = 'hover:border-emerald-400' }) => (
+  <button onClick={onClick} className={`relative p-5 rounded-3xl bg-surface border-2 border-line ${accentBorder} hover:shadow-lg text-left transition-all active:scale-[0.98]`}>
+    {todayCount !== undefined && (
+      <span className={`absolute top-3 right-3 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black ${todayCount > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-surface-3 text-faint'}`}>
+        きょう ✓{todayCount}
+      </span>
+    )}
+    <div className="text-lg font-black text-content mb-1 pr-20">{label}</div>
     <div className="text-sm text-muted font-medium mb-2">{desc}</div>
     {mastery !== undefined && <MasteryBar value={mastery} />}
   </button>

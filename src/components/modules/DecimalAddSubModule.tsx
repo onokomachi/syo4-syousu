@@ -43,6 +43,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   const adaptive = useAdaptive(ADDSUB_LEVELS.map((l) => l.id), 'addsub');
   const effectiveLevel = mode === 'adaptive' ? adaptive.level : level;
   const getMasteryStreak = useProgressStore((s) => s.getMasteryStreak);
+  const getTodaySkillCount = useProgressStore((s) => s.getTodaySkillCount);
 
   const start = (lv: AddSubLevel) => {
     setMode('fixed');
@@ -93,6 +94,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
                 label={lv.label}
                 desc={lv.description}
                 mastery={getMasteryStreak(`addsub-${lv.id}`)}
+                todayCount={getTodaySkillCount(`addsub-${lv.id}`)}
                 onClick={() => start(lv.id)}
                 accentBorder="hover:border-emerald-400"
               />
@@ -110,6 +112,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
                 label={`組み立て・${lv.label}`}
                 desc={lv.description}
                 mastery={getMasteryStreak(`addsub-build-${lv.id}`)}
+                todayCount={getTodaySkillCount(`addsub-build-${lv.id}`)}
                 onClick={() => startBuild(lv.id)}
                 accentBorder="hover:border-emerald-400"
               />

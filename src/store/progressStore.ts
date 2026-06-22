@@ -41,6 +41,7 @@ interface ProgressState {
   getMasteryStreak: (skillId: string) => number; // 0..1（連続ノーミス/5。熟達バー表示用）
   getModuleCount: (moduleId: ModuleId) => number;
   getTodayCount: () => number; // きょう 正解した数
+  getTodaySkillCount: (skillId: string) => number; // きょう そのスキルを 正解した数
   setDailyGoal: (n: number) => void;
   reset: () => void;
 }
@@ -100,6 +101,13 @@ export const useProgressStore = create<ProgressState>()(
         start.setHours(0, 0, 0, 0);
         const t = start.getTime();
         return get().logs.filter((l) => l.ts >= t && l.correct).length;
+      },
+
+      getTodaySkillCount: (skillId) => {
+        const start = new Date();
+        start.setHours(0, 0, 0, 0);
+        const t = start.getTime();
+        return get().logs.filter((l) => l.ts >= t && l.correct && l.skillId === skillId).length;
       },
 
       setDailyGoal: (n) => set({ dailyGoal: n }),
