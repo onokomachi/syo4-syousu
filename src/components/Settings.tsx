@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { motion } from 'motion/react';
-import { X, Sun, Coffee, Moon, Volume2, VolumeX, Music, Music2 } from 'lucide-react';
+import { X, Sun, Coffee, Moon, Music, Music2 } from 'lucide-react';
 import { useSettingsStore, Theme, FontScale } from '../store/settingsStore';
 
 interface Props {
@@ -24,7 +24,7 @@ const FONTS: { id: FontScale; label: string; sample: string }[] = [
 ];
 
 export const Settings: React.FC<Props> = ({ onClose }) => {
-  const { theme, fontScale, ttsEnabled, soundEnabled, setTheme, setFontScale, toggleTts, toggleSound } = useSettingsStore();
+  const { theme, fontScale, soundEnabled, setTheme, setFontScale, toggleSound } = useSettingsStore();
 
   return (
     <motion.div
@@ -97,28 +97,8 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
           </div>
         </div>
 
-        {/* 読み上げ */}
-        <div className="flex items-center justify-between p-5 bg-surface-2 rounded-2xl border border-line">
-          <div className="flex items-center gap-3">
-            {ttsEnabled ? <Volume2 className="text-blue-500" /> : <VolumeX className="text-faint" />}
-            <div>
-              <div className="font-bold text-content">よみあげ</div>
-              <div className="text-sm text-muted">もんだいや ことばを 音声でよみます。</div>
-            </div>
-          </div>
-          <button
-            onClick={toggleTts}
-            className={`w-14 h-8 rounded-full transition-colors relative flex items-center px-1 ${
-              ttsEnabled ? 'bg-blue-500' : 'bg-slate-300'
-            }`}
-            aria-label="よみあげの オン・オフ"
-          >
-            <motion.div animate={{ x: ttsEnabled ? 24 : 0 }} className="w-6 h-6 bg-surface rounded-full shadow-sm" />
-          </button>
-        </div>
-
         {/* 効果音 */}
-        <div className="flex items-center justify-between p-5 bg-surface-2 rounded-2xl border border-line mt-4">
+        <div className="flex items-center justify-between p-5 bg-surface-2 rounded-2xl border border-line">
           <div className="flex items-center gap-3">
             {soundEnabled ? <Music className="text-blue-500" /> : <Music2 className="text-faint" />}
             <div>

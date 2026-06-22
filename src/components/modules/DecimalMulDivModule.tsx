@@ -10,7 +10,6 @@ import { ChevronLeft, RotateCcw, Lightbulb, X as XIcon, Divide } from 'lucide-re
 import confetti from 'canvas-confetti';
 import { AppShell } from '../shared/AppShell';
 import { Keypad } from '../shared/Keypad';
-import { SpeakButton } from '../shared/SpeakButton';
 import {
   MUL_LEVELS, MulLevel, MulProblem, buildMul, generateMul,
   DIV_LEVELS, DivLevel, DivProblem, buildDiv, generateDiv,
@@ -272,9 +271,9 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
                 ? 'bg-violet-50 ring-4 ring-violet-400 ring-inset rounded-xl' : ''
             }`}
           >
-            {/* くり上がりメモ（補助線のすぐ下・左隣けたの右上に小さく・採点なし） */}
+            {/* くり上がりメモ（補助線のすぐ下・左隣けたの右上に小さく・採点なし。「？」枠と重ならないよう右へ） */}
             {opts.showCarry && carries[c] && (
-              <span className="absolute top-0 right-0 text-base font-black text-rose-400 leading-none">{carries[c]}</span>
+              <span className="absolute -top-1 right-[-10px] text-base font-black text-rose-400 leading-none">{carries[c]}</span>
             )}
             {opts.isProduct ? (
               answers[c] !== undefined ? <span className="text-violet-600">{answers[c]}</span>
@@ -299,7 +298,6 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
         <div className="bg-surface p-8 md:p-12 rounded-[36px] shadow-2xl border border-line">
           <div className="flex items-center justify-center gap-3 mb-6">
             <h2 className="text-2xl font-black text-content tabular-nums">{problem.a} × {problem.b}</h2>
-            <SpeakButton text={`${problem.a} かける ${problem.b}`} />
           </div>
           <div className="font-mono">
             {renderRow(aCells, { showDotAtGap: dotGap })}
@@ -332,7 +330,6 @@ const MulSimulator: React.FC<{ problem: MulProblem; level: MulLevel; onNext: () 
             <div className="bg-violet-50 p-6 rounded-3xl border border-violet-100">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-violet-700 font-black text-lg flex items-center gap-2"><Lightbulb size={20} /> ヒント</h3>
-                <SpeakButton text={hint ?? (stage === 'DIGITS' ? '整数のかけ算と同じように 計算しよう' : `右から ${decimals}こ 数えて 小数点をうとう`)} />
               </div>
               <p className="text-muted font-bold leading-relaxed">
                 {hint ?? (stage === 'DIGITS'
@@ -536,7 +533,6 @@ const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () 
         <div className="bg-surface p-8 md:p-12 rounded-[36px] shadow-2xl border border-line">
           <div className="flex items-center justify-center gap-3 mb-6">
             <h2 className="text-2xl font-black text-content tabular-nums">{problem.dividend} ÷ {problem.divisor}</h2>
-            <SpeakButton text={`${problem.dividend} わる ${problem.divisor}`} />
           </div>
 
           <div className="font-mono text-content">
@@ -617,7 +613,6 @@ const DivSimulator: React.FC<{ problem: DivProblem; level: DivLevel; onNext: () 
             <motion.div animate={shake ? { x: [0, -6, 6, -6, 0] } : { x: 0 }} className="bg-blue-50 p-6 rounded-3xl border border-blue-100">
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-blue-700 font-black text-lg flex items-center gap-2"><Lightbulb size={20} /> {stageTitle[stage]}</h3>
-                <SpeakButton text={hint ?? stageHint()} />
               </div>
               <p className="text-muted font-bold leading-relaxed">{hint ?? stageHint()}</p>
             </motion.div>

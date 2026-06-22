@@ -9,7 +9,6 @@ import { motion } from 'motion/react';
 import { ChevronLeft, RotateCcw, Plus, Minus, Lightbulb, LayoutGrid, Boxes, ArrowLeftRight, Ruler, Hash } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AppShell } from '../shared/AppShell';
-import { SpeakButton } from '../shared/SpeakButton';
 import { AnswerEntry } from '../shared/AnswerEntry';
 import { Keypad } from '../shared/Keypad';
 import {
@@ -148,7 +147,6 @@ export const ComposeActivity: React.FC<{ problem: ComposeProblem; level: Compose
           <div className="flex items-center justify-center gap-3 mb-2">
             <h2 className="text-xl font-black text-muted">この数を つくろう：</h2>
             <span className="text-5xl font-black text-rose-500 tabular-nums">{problem.target}</span>
-            <SpeakButton text={`${problem.target} を つくろう`} />
           </div>
           <p className="text-center text-muted font-bold mb-6">いま：<span className="text-content text-xl tabular-nums">{current}</span></p>
 
@@ -174,7 +172,7 @@ export const ComposeActivity: React.FC<{ problem: ComposeProblem; level: Compose
           {solved ? (
             <div className="text-center mt-8">
               <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl text-left">
-                {problem.target} は {decompo} あわせた数だね！<SpeakButton text={`${problem.target} は ${decompo} あわせた数`} />
+                {problem.target} は {decompo} あわせた数だね！
               </div>
               <div><button onClick={onNext} className="mt-6 px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button></div>
             </div>
@@ -223,7 +221,6 @@ export const CollectActivity: React.FC<{ problem: CollectProblem; level: Collect
         <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
           <div className="flex items-center justify-center gap-2 mb-6 text-center">
             <h2 className="text-2xl font-black text-content">{question}</h2>
-            <SpeakButton text={question} />
           </div>
           {solved ? (
             <div className="text-center">
@@ -232,7 +229,7 @@ export const CollectActivity: React.FC<{ problem: CollectProblem; level: Collect
             </div>
           ) : (
             <>
-              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} /></div>}
+              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p></div>}
               <AnswerEntry onSubmit={submit} allowDecimal={problem.direction === 'value'} accentText="text-rose-600" />
             </>
           )}
@@ -272,7 +269,6 @@ export const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel;
         <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
           <div className="flex items-center justify-center gap-2 mb-6">
             <h2 className="text-3xl font-black text-content tabular-nums">{question}</h2>
-            <SpeakButton text={question} />
           </div>
           {solved ? (
             <div className="text-center">
@@ -281,7 +277,7 @@ export const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel;
             </div>
           ) : (
             <>
-              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} /></div>}
+              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p></div>}
               <AnswerEntry onSubmit={submit} allowDecimal accentText="text-rose-600" />
             </>
           )}
@@ -322,7 +318,6 @@ export const UnitActivity: React.FC<{ problem: UnitProblem; level: UnitLevel; on
         <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
           <div className="flex items-center justify-center gap-2 mb-6">
             <h2 className="text-3xl font-black text-content tabular-nums">{question}</h2>
-            <SpeakButton text={problem.promptSpeak} />
           </div>
           {solved ? (
             <div className="text-center">
@@ -331,7 +326,7 @@ export const UnitActivity: React.FC<{ problem: UnitProblem; level: UnitLevel; on
             </div>
           ) : (
             <>
-              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} /></div>}
+              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p></div>}
               <AnswerEntry onSubmit={submit} allowDecimal accentText="text-rose-600" />
             </>
           )}
@@ -373,7 +368,6 @@ export const PlaceIdActivity: React.FC<{ problem: PlaceIdProblem; level: PlaceId
         <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
           <div className="flex items-center justify-center gap-2 mb-4">
             <h2 className="text-2xl font-black text-content">{question}</h2>
-            <SpeakButton text={`${problem.valueStr} の ${problem.placeSpeak} の 数字は`} />
           </div>
           <motion.div animate={shake ? { x: [0, -8, 8, -8, 0] } : { x: 0 }} className="text-center text-6xl font-black text-rose-500 tabular-nums mb-6">
             {problem.valueStr}
@@ -385,7 +379,7 @@ export const PlaceIdActivity: React.FC<{ problem: PlaceIdProblem; level: PlaceId
             </div>
           ) : (
             <>
-              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} /></div>}
+              {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p></div>}
               <Keypad onInput={handle} onBackspace={() => {}} allowDecimal={false} />
             </>
           )}
@@ -429,7 +423,6 @@ export const DecomposeActivity: React.FC<{ problem: DecomposeProblem; onNext: ()
         <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
           <div className="flex items-center justify-center gap-3 mb-2">
             <h2 className="text-xl font-black text-muted">この数は それぞれ 何こ あつめた数？</h2>
-            <SpeakButton text={`${problem.valueStr} は それぞれ 何こ あつめた数`} />
           </div>
           <div className="text-center text-5xl font-black text-rose-500 tabular-nums mb-6">{problem.valueStr}</div>
 
@@ -449,7 +442,7 @@ export const DecomposeActivity: React.FC<{ problem: DecomposeProblem; onNext: ()
           {solved ? (
             <div className="text-center mt-8">
               <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl text-left">
-                {problem.valueStr} は {decompo} あわせた数だね！<SpeakButton text={`${problem.valueStr} は ${decompo} あわせた数`} />
+                {problem.valueStr} は {decompo} あわせた数だね！
               </div>
               <div><button onClick={onNext} className="mt-6 px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button></div>
             </div>

@@ -6,18 +6,15 @@ import React, { useState } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { ChevronLeft, Settings as SettingsIcon } from 'lucide-react';
 import { Settings } from '../Settings';
-import { SpeakButton } from './SpeakButton';
 
 interface Props {
   title: string;
   subtitle?: string;
   onBack: () => void;
-  /** タイトル横に読み上げボタンを出す場合の読み上げ文 */
-  speakText?: string;
   children: React.ReactNode;
 }
 
-export const AppShell: React.FC<Props> = ({ title, subtitle, onBack, speakText, children }) => {
+export const AppShell: React.FC<Props> = ({ title, subtitle, onBack, children }) => {
   const [showSettings, setShowSettings] = useState(false);
 
   return (
@@ -36,7 +33,6 @@ export const AppShell: React.FC<Props> = ({ title, subtitle, onBack, speakText, 
             <h1 className="text-xl md:text-2xl font-black text-content leading-tight">{title}</h1>
             {subtitle && <p className="text-xs md:text-sm text-faint font-bold">{subtitle}</p>}
           </div>
-          {speakText && <SpeakButton text={speakText} />}
         </div>
 
         <button

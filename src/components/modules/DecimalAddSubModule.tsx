@@ -8,18 +8,15 @@
  */
 import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, RotateCcw, Lightbulb } from 'lucide-react';
+import { ChevronLeft, RotateCcw, Lightbulb, CheckCircle2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AppShell } from '../shared/AppShell';
 import { Keypad } from '../shared/Keypad';
-import { SpeakButton } from '../shared/SpeakButton';
 import {
   ADDSUB_LEVELS, AddSubLevel, AddSubProblem, buildColumns, generateAddSub, placeName,
 } from '../../lib/decimal';
 import { useProgressStore } from '../../store/progressStore';
 import { LevelCard } from '../ui/primitives';
-import { useSettingsStore } from '../../store/settingsStore';
-import { speak } from '../../lib/speech';
 import { playClear, playCorrect, playSoftTry } from '../../lib/sound';
 import { useAdaptive } from '../../lib/useAdaptive';
 import { AdaptiveBar } from '../shared/AdaptiveBar';
@@ -39,6 +36,8 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   const [level, setLevel] = useState<AddSubLevel>('add-basic');
   const [mode, setMode] = useState<'fixed' | 'adaptive'>('fixed');
   const [build, setBuild] = useState(false);
+  const [master, setMaster] = useState(false); // SETUP の「マスターモード」トグル
+  const [runMaster, setRunMaster] = useState(false); // SIM がマスター自由配置か
   const [problem, setProblem] = useState<AddSubProblem | null>(null);
   const adaptive = useAdaptive(ADDSUB_LEVELS.map((l) => l.id), 'addsub');
   const effectiveLevel = mode === 'adaptive' ? adaptive.level : level;
@@ -48,6 +47,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   const start = (lv: AddSubLevel) => {
     setMode('fixed');
     setBuild(false);
+    setRunMaster(false);
     setLevel(lv);
     setProblem(generateAddSub(lv));
     setPhase('SIM');
@@ -55,6 +55,15 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   const startBuild = (lv: AddSubLevel) => {
     setMode('fixed');
     setBuild(true);
+    setRunMaster(false);
+    setLevel(lv);
+    setProblem(generateAddSub(lv));
+    setPhase('SIM');
+  };
+  const startMaster = (lv: AddSubLevel) => {
+    setMode('fixed');
+    setBuild(false);
+    setRunMaster(true);
     setLevel(lv);
     setProblem(generateAddSub(lv));
     setPhase('SIM');
@@ -62,6 +71,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   const startAdaptive = () => {
     setMode('adaptive');
     setBuild(false);
+    setRunMaster(false);
     setProblem(generateAddSub(adaptive.level));
     setPhase('SIM');
   };
@@ -101,19 +111,36 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
             ))}
           </div>
 
-          <div className="flex items-center gap-2 mt-8 mb-3 text-emerald-700">
-            <Lightbulb size={20} /><span className="font-black">筆算を 組み立てる（位を そろえる）</span>
+          <div className="flex items-center justify-between gap-3 mt-8 mb-3">
+            <div className="flex items-center gap-2 text-emerald-700">
+              <Lightbulb size={20} /><span className="font-black">筆算を 組み立てる（位を そろえる）</span>
+            </div>
+            {/* マスターモード切替 */}
+            <button
+              onClick={() => setMaster((m) => !m)}
+              className="flex items-center gap-2 shrink-0"
+              aria-label="マスターモードの オン・オフ"
+            >
+              <span className={`text-sm font-black ${master ? 'text-emerald-700' : 'text-faint'}`}>マスターモード</span>
+              <span className={`w-12 h-7 rounded-full transition-colors relative flex items-center px-1 ${master ? 'bg-emerald-500' : 'bg-slate-300'}`}>
+                <motion.span animate={{ x: master ? 20 : 0 }} className="w-5 h-5 bg-surface rounded-full shadow-sm" />
+              </span>
+            </button>
           </div>
-          <p className="text-muted font-medium mb-3 text-sm">数字を 正しい 位の ますに 自分で ならべてから 計算するよ。</p>
+          <p className="text-muted font-medium mb-3 text-sm">
+            {master
+              ? 'うすい目もり線を めやすに、上の数・下の数・答えを ぜんぶ 自分で ならべて、さいごに「答え合わせ」をするよ。'
+              : '数字を 正しい 位の ますに 自分で ならべてから 計算するよ。'}
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {ADDSUB_LEVELS.map((lv) => (
               <LevelCard
                 key={lv.id}
-                label={`組み立て・${lv.label}`}
+                label={`${master ? 'マスター' : '組み立て'}・${lv.label}`}
                 desc={lv.description}
-                mastery={getMasteryStreak(`addsub-build-${lv.id}`)}
-                todayCount={getTodaySkillCount(`addsub-build-${lv.id}`)}
-                onClick={() => startBuild(lv.id)}
+                mastery={getMasteryStreak(`${master ? 'addsub-master' : 'addsub-build'}-${lv.id}`)}
+                todayCount={getTodaySkillCount(`${master ? 'addsub-master' : 'addsub-build'}-${lv.id}`)}
+                onClick={() => (master ? startMaster(lv.id) : startBuild(lv.id))}
                 accentBorder="hover:border-emerald-400"
               />
             ))}
@@ -126,7 +153,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
   return (
     <AppShell
       title="小数の たし算・ひき算"
-      subtitle={mode === 'adaptive' ? 'おまかせ' : `${build ? '組み立て・' : ''}${ADDSUB_LEVELS.find((l) => l.id === level)?.label ?? ''}`}
+      subtitle={mode === 'adaptive' ? 'おまかせ' : `${runMaster ? 'マスター・' : build ? '組み立て・' : ''}${ADDSUB_LEVELS.find((l) => l.id === level)?.label ?? ''}`}
       onBack={() => setPhase('SETUP')}
     >
       <div className="flex flex-col h-full">
@@ -134,7 +161,14 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
           <AdaptiveBar index={adaptive.index} total={adaptive.total} leveledUp={adaptive.leveledUp} onClearLevelUp={adaptive.clearLevelUp} />
         )}
         <div className="flex-1 min-h-0">
-          {problem && (
+          {problem && (runMaster ? (
+            <AddSubMasterSimulator
+              key={`${problem.a}-${problem.b}-${problem.op}-master`}
+              problem={problem}
+              level={effectiveLevel}
+              onNext={() => setProblem(generateAddSub(effectiveLevel))}
+            />
+          ) : (
             <AddSubSimulator
               key={`${problem.a}-${problem.b}-${problem.op}-${build}`}
               problem={problem}
@@ -143,7 +177,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
               onNext={() => setProblem(generateAddSub(effectiveLevel))}
               onResult={mode === 'adaptive' ? adaptive.onResult : undefined}
             />
-          )}
+          ))}
         </div>
       </div>
     </AppShell>
@@ -172,7 +206,6 @@ export const AddSubSimulator: React.FC<SimProps> = ({ problem, level, buildMode 
   const [placedB, setPlacedB] = useState<Record<number, string>>({});
 
   const recordResult = useProgressStore((s) => s.recordResult);
-  const ttsEnabled = useSettingsStore((s) => s.ttsEnabled);
 
   // 置くべき桁（高い位→低い位）
   const digitsA = useMemo(() => model.rowA.filter((c) => c.kind === 'digit').sort((x, y) => y.place - x.place), [model]);
@@ -360,7 +393,6 @@ export const AddSubSimulator: React.FC<SimProps> = ({ problem, level, buildMode 
             <h2 className="text-2xl font-black text-content tabular-nums">
               {problem.a} {problem.op} {problem.b}
             </h2>
-            <SpeakButton text={`${problem.a} ${opWord} ${problem.b}`} />
           </div>
 
           <div className="relative font-mono" style={{ width: gridWidth }}>
@@ -453,7 +485,6 @@ export const AddSubSimulator: React.FC<SimProps> = ({ problem, level, buildMode 
                 <h3 className="text-emerald-700 font-black text-lg flex items-center gap-2">
                   <Lightbulb size={20} /> {stage === 'A' ? '上の数を ならべよう' : '下の数を ならべよう'}
                 </h3>
-                <SpeakButton text={hint ?? `${stage === 'A' ? problem.a : problem.b} の 数字を 正しい 位に おこう`} />
               </div>
               <p className="text-muted font-bold leading-relaxed">
                 {hint ?? `${stage === 'A' ? problem.a : problem.b} を 位ごとに 上から じゅんに おくよ。小数点に そろえてね。`}
@@ -474,14 +505,6 @@ export const AddSubSimulator: React.FC<SimProps> = ({ problem, level, buildMode 
                 <h3 className="text-emerald-700 font-black text-lg flex items-center gap-2">
                   <Lightbulb size={20} /> ヒント
                 </h3>
-                {activeCell && (
-                  <SpeakButton
-                    text={
-                      hint ??
-                      `${placeName(activePlace!)}から 計算しよう。右の位から じゅんばんに もとめてね。`
-                    }
-                  />
-                )}
               </div>
               <p className="text-muted font-bold leading-relaxed">
                 {hint ??
@@ -502,14 +525,223 @@ export const AddSubSimulator: React.FC<SimProps> = ({ problem, level, buildMode 
         )}
 
         <button
-          onClick={() => {
-            if (ttsEnabled) speak('さいしょから');
-            reset();
-          }}
+          onClick={reset}
           className="flex items-center justify-center gap-2 text-faint hover:text-muted py-4 font-bold border-t border-line shrink-0"
         >
           <RotateCcw size={20} /> さいしょから
         </button>
+      </div>
+    </div>
+  );
+};
+
+/* =========================================================================
+ * マスターモード：自由配置の筆算（うすい目安線だけ・全部 自分で組み立て）
+ * 上の数・下の数・答えを 好きな位に置き、最後に「答え合わせ」で正誤判定する。
+ * ======================================================================= */
+interface MasterProps {
+  problem: AddSubProblem;
+  level: AddSubLevel;
+  onNext: () => void;
+}
+
+type RowKey = 'A' | 'B' | 'ANS';
+
+export const AddSubMasterSimulator: React.FC<MasterProps> = ({ problem, level, onNext }) => {
+  const model = useMemo(() => buildColumns(problem), [problem]);
+  const recordResult = useProgressStore((s) => s.recordResult);
+
+  // キャンバスの列：必要な位の左右に 2 列ずつ余白を足し、わざと ずらせるようにする
+  const minP = Math.min(...model.places);
+  const maxP = Math.max(...model.places);
+  const canvasMin = minP - 2;
+  const canvasMax = maxP + 2;
+  const canvasPlaces = useMemo(() => {
+    const ps: number[] = [];
+    for (let p = canvasMax; p >= canvasMin; p--) ps.push(p);
+    return ps;
+  }, [canvasMin, canvasMax]);
+  const intPlaces = canvasPlaces.filter((p) => p >= 0);
+  const decPlaces = canvasPlaces.filter((p) => p < 0);
+  const gridWidth = OP_W + intPlaces.length * CELL_W + DOT_W + decPlaces.length * CELL_W;
+  const dotLeft = OP_W + intPlaces.length * CELL_W + DOT_W / 2;
+
+  const [cellsA, setCellsA] = useState<Record<number, string>>({});
+  const [cellsB, setCellsB] = useState<Record<number, string>>({});
+  const [cellsAns, setCellsAns] = useState<Record<number, string>>({});
+  const [selected, setSelected] = useState<{ row: RowKey; place: number } | null>(null);
+  const [checked, setChecked] = useState(false);
+  const [correct, setCorrect] = useState(false);
+  const [recorded, setRecorded] = useState(false);
+
+  const cellsOf = (row: RowKey) => (row === 'A' ? cellsA : row === 'B' ? cellsB : cellsAns);
+  const setterOf = (row: RowKey) =>
+    row === 'A' ? setCellsA : row === 'B' ? setCellsB : setCellsAns;
+
+  // 整数スケールで値を比較（小数点は目安線=固定基準）。空の余白列は 0 寄与で自然に無視される。
+  const SCALE = Math.round(10 ** -canvasMin);
+  const toInt = (cells: Record<number, string>) =>
+    Object.entries(cells).reduce((s, [p, d]) => s + Number(d) * Math.round(10 ** (Number(p) - canvasMin)), 0);
+  const targetInt = (x: number) => Math.round(x * SCALE);
+
+  const select = (row: RowKey, place: number) => {
+    if (checked) return;
+    setSelected({ row, place });
+  };
+  const handleInput = (d: string) => {
+    if (checked || !selected || d === '.') return;
+    const setter = setterOf(selected.row);
+    setter((prev) => ({ ...prev, [selected.place]: d }));
+    playCorrect();
+  };
+  const handleBackspace = () => {
+    if (checked || !selected) return;
+    const setter = setterOf(selected.row);
+    setter((prev) => {
+      const next = { ...prev };
+      delete next[selected.place];
+      return next;
+    });
+  };
+
+  const check = () => {
+    const alignOK = toInt(cellsA) === targetInt(problem.a) && toInt(cellsB) === targetInt(problem.b);
+    const ansOK = toInt(cellsAns) === targetInt(model.result);
+    const ok = alignOK && ansOK;
+    setCorrect(ok);
+    setChecked(true);
+    setSelected(null);
+    if (ok) {
+      playClear();
+      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    } else {
+      playSoftTry();
+    }
+    if (!recorded) {
+      recordResult({
+        moduleId: 'decimal-addsub',
+        skillId: `addsub-master-${level}`,
+        label: `${problem.a} ${problem.op} ${problem.b}`,
+        correct: ok,
+      });
+      setRecorded(true);
+    }
+  };
+
+  const retry = () => {
+    setCellsA({});
+    setCellsB({});
+    setCellsAns({});
+    setSelected(null);
+    setChecked(false);
+    setCorrect(false);
+  };
+
+  const alignOK = toInt(cellsA) === targetInt(problem.a) && toInt(cellsB) === targetInt(problem.b);
+
+  const MasterCell: React.FC<{ row: RowKey; place: number; op?: string }> = ({ row, place }) => {
+    const isSel = selected?.row === row && selected.place === place;
+    const digit = cellsOf(row)[place];
+    const color = row === 'ANS' ? 'text-emerald-600' : 'text-content';
+    return (
+      <button
+        onClick={() => select(row, place)}
+        disabled={checked}
+        style={{ width: CELL_W, height: ROW_H }}
+        className={`flex items-center justify-center text-4xl font-black rounded-xl transition-colors ${
+          isSel ? 'bg-emerald-50 ring-4 ring-emerald-400 ring-inset'
+            : !checked ? 'ring-1 ring-line ring-inset hover:bg-surface-2' : ''
+        }`}
+      >
+        {digit !== undefined ? <span className={color}>{digit}</span>
+          : isSel ? <span className="text-emerald-300 animate-pulse">？</span> : null}
+      </button>
+    );
+  };
+
+  const renderRow = (row: RowKey, op?: string) => (
+    <div className="flex items-center" style={{ width: gridWidth, height: ROW_H }}>
+      <div style={{ width: OP_W, height: ROW_H }} className="flex items-center justify-center text-3xl font-black text-muted">
+        {op ?? ''}
+      </div>
+      {intPlaces.map((p) => <MasterCell key={p} row={row} place={p} />)}
+      <div style={{ width: DOT_W, height: ROW_H }} />
+      {decPlaces.map((p) => <MasterCell key={p} row={row} place={p} />)}
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col md:flex-row h-full">
+      {/* 計算ワークスペース */}
+      <div className="flex-1 overflow-auto p-4 md:p-10 flex justify-center items-start">
+        <div className="bg-surface p-8 md:p-12 rounded-[36px] shadow-2xl border border-line relative">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <h2 className="text-2xl font-black text-content tabular-nums">{problem.a} {problem.op} {problem.b}</h2>
+          </div>
+
+          <div className="relative font-mono" style={{ width: gridWidth }}>
+            {/* 小数点の うすい目安線（位をそろえる基準） */}
+            <div className="absolute top-0 bottom-0 w-0.5 bg-amber-300/40 rounded-full z-0" style={{ left: dotLeft - 1 }} />
+            <div className="relative z-10">
+              {renderRow('A')}
+              {renderRow('B', problem.op)}
+              <div className="border-b-4 border-slate-800 rounded-full" style={{ width: gridWidth }} />
+              {renderRow('ANS')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* サイドパネル */}
+      <div className="w-full md:w-[400px] bg-surface border-l border-line p-6 md:p-8 flex flex-col gap-5 overflow-y-auto">
+        {checked ? (
+          <div className={`flex-1 flex flex-col justify-center items-center p-6 rounded-3xl text-center border ${correct ? 'bg-emerald-50 border-emerald-100' : 'bg-amber-50 border-amber-100'}`}>
+            <span className="text-6xl mb-4">{correct ? '🏆' : '🤔'}</span>
+            <h3 className={`text-2xl font-black mb-2 ${correct ? 'text-emerald-800' : 'text-amber-700'}`}>
+              {correct ? 'せいかい！' : 'もう一歩！'}
+            </h3>
+            <p className={`font-bold mb-2 ${correct ? 'text-emerald-600' : 'text-amber-700'}`}>
+              {correct
+                ? `${problem.a} ${problem.op} ${problem.b} = ${model.result}`
+                : !alignOK
+                  ? '数の 位が ずれていないかな？小数点の 線に そろえて たしかめよう。'
+                  : '位は そろっているよ。もう一度 計算を たしかめよう。'}
+            </p>
+            {!correct && (
+              <p className="text-faint font-bold text-sm mb-2">正しい 答え：{problem.a} {problem.op} {problem.b} = {model.result}</p>
+            )}
+            <div className="flex flex-col gap-2 w-full mt-4">
+              <button onClick={retry} className="w-full py-3 bg-surface border-2 border-emerald-300 text-emerald-700 rounded-2xl font-black text-lg hover:bg-emerald-50 transition-all active:scale-95">
+                もう一度 やってみる
+              </button>
+              <button onClick={onNext} className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">
+                つぎの もんだい
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
+              <h3 className="text-emerald-700 font-black text-lg flex items-center gap-2 mb-2">
+                <Lightbulb size={20} /> マスターモード
+              </h3>
+              <p className="text-muted font-bold leading-relaxed">
+                ますを タップ → 数字キーで 上の数・下の数・答えを 自分で ならべよう。うすい線が 小数点の めやすだよ。できたら「答え合わせ」！
+              </p>
+            </div>
+
+            <div className="flex-1 flex flex-col justify-center">
+              <Keypad onInput={handleInput} onBackspace={handleBackspace} allowDecimal={false} />
+            </div>
+
+            <button
+              onClick={check}
+              className="flex items-center justify-center gap-2 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95 shrink-0"
+            >
+              <CheckCircle2 size={22} /> 答え合わせを する
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

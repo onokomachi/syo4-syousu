@@ -8,7 +8,6 @@ import { motion } from 'motion/react';
 import { ChevronLeft, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { AppShell } from '../shared/AppShell';
-import { SpeakButton } from '../shared/SpeakButton';
 import { AnswerEntry } from '../shared/AnswerEntry';
 import { HintBox, ResultPanel, Button } from '../ui/primitives';
 import { WordProblem, generateWordProblem } from '../../lib/wordProblems';
@@ -92,11 +91,10 @@ export const Round: React.FC<{ problem: WordProblem; onNext: () => void; onResul
           <div className="flex items-start gap-3">
             <span className="text-5xl shrink-0">{problem.emoji}</span>
             <p className="text-xl md:text-2xl font-black text-content leading-relaxed flex-1">{problem.text}</p>
-            <SpeakButton text={problem.speak} size={24} />
           </div>
         </div>
 
-        {hint && <HintBox speakText={hint} tone={pickedWrong !== null && stage === 'shiki' ? 'wrong' : 'hint'}>{hint}</HintBox>}
+        {hint && <HintBox tone={pickedWrong !== null && stage === 'shiki' ? 'wrong' : 'hint'}>{hint}</HintBox>}
 
         {stage === 'shiki' && (
           <div>
