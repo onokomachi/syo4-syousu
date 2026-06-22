@@ -13,7 +13,8 @@ export type ModuleId =
   | 'error-hunter'
   | 'number-line'
   | 'place-value'
-  | 'word-problem';
+  | 'word-problem'
+  | 'mock-test';
 
 export interface ResultRecord {
   id: string;

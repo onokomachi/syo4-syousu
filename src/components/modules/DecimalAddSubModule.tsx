@@ -158,7 +158,7 @@ interface SimProps {
   onResult?: (perfect: boolean) => void;
 }
 
-const AddSubSimulator: React.FC<SimProps> = ({ problem, level, buildMode = false, onNext, onResult }) => {
+export const AddSubSimulator: React.FC<SimProps> = ({ problem, level, buildMode = false, onNext, onResult }) => {
   const model = useMemo(() => buildColumns(problem), [problem]);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [finished, setFinished] = useState(false);

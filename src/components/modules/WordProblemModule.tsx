@@ -49,7 +49,7 @@ export const WordProblemModule: React.FC<Props> = ({ onExit }) => {
   );
 };
 
-const Round: React.FC<{ problem: WordProblem; onNext: () => void }> = ({ problem, onNext }) => {
+export const Round: React.FC<{ problem: WordProblem; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, onNext, onResult }) => {
   const [stage, setStage] = useState<'shiki' | 'calc' | 'done'>('shiki');
   const [pickedWrong, setPickedWrong] = useState<number | null>(null);
   const [mistakes, setMistakes] = useState(0);
@@ -75,6 +75,7 @@ const Round: React.FC<{ problem: WordProblem; onNext: () => void }> = ({ problem
       playClear();
       confetti({ particleCount: 130, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'word-problem', skillId: `wp-${problem.op}`, label: problem.text.slice(0, 18) + '…', correct: mistakes === 0 });
+      onResult?.(mistakes === 0);
       setStage('done');
     } else {
       playSoftTry();

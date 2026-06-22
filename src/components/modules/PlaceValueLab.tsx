@@ -18,6 +18,7 @@ import {
   SCALE_LEVELS, ScaleLevel, ScaleProblem, generateScale, scaleOpLabel,
   UNIT_LEVELS, UnitLevel, UnitProblem, generateUnit,
   PLACEID_LEVELS, PlaceIdLevel, PlaceIdProblem, generatePlaceId,
+  DecomposeProblem,
 } from '../../lib/placeValue';
 import { useProgressStore } from '../../store/progressStore';
 import { LevelCard } from '../ui/primitives';
@@ -111,11 +112,12 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
 };
 
 /* ---------------- 数をつくる ---------------- */
-const ComposeActivity: React.FC<{ problem: ComposeProblem; level: ComposeLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+export const ComposeActivity: React.FC<{ problem: ComposeProblem; level: ComposeLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, level, onNext, onResult }) => {
   const units = PLACE_UNITS.slice(0, problem.decimals + 1);
   const [counts, setCounts] = useState<number[]>(units.map(() => 0));
   const [solved, setSolved] = useState(false);
   const [wrong, setWrong] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
   const recordResult = useProgressStore((s) => s.recordResult);
 
   const milli = (units[0] ? counts[0] * 1000 : 0) + (units[1] ? counts[1] * 100 : 0) + (units[2] ? counts[2] * 10 : 0) + (units[3] ? counts[3] : 0);
@@ -133,7 +135,8 @@ const ComposeActivity: React.FC<{ problem: ComposeProblem; level: ComposeLevel; 
       playClear();
       confetti({ particleCount: 130, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'place-value', skillId: `compose-${level}`, label: `${problem.target} をつくる`, correct: true });
-    } else { playSoftTry(); setWrong(true); }
+      onResult?.(mistakes === 0);
+    } else { playSoftTry(); setWrong(true); setMistakes((m) => m + 1); }
   };
 
   const decompo = units.map((u, i) => `${u.label}を${problem.digits[i]}こ`).join('、');
@@ -188,9 +191,10 @@ const ComposeActivity: React.FC<{ problem: ComposeProblem; level: ComposeLevel; 
 };
 
 /* ---------------- あつめた数 ---------------- */
-const CollectActivity: React.FC<{ problem: CollectProblem; level: CollectLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+export const CollectActivity: React.FC<{ problem: CollectProblem; level: CollectLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, level, onNext, onResult }) => {
   const [solved, setSolved] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
+  const [mistakes, setMistakes] = useState(0);
   const recordResult = useProgressStore((s) => s.recordResult);
 
   const question = problem.direction === 'count'
@@ -203,8 +207,10 @@ const CollectActivity: React.FC<{ problem: CollectProblem; level: CollectLevel; 
       playClear();
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'place-value', skillId: `collect-${level}`, label: question, correct: true });
+      onResult?.(mistakes === 0);
     } else {
       playSoftTry();
+      setMistakes((m) => m + 1);
       setHint(problem.direction === 'count'
         ? `${problem.unitLabel} が 10こ あつまると 1つ上の位に なるよ。`
         : `${problem.unitLabel} の ${problem.count}こ分。10こで くり上がるよ。`);
@@ -237,9 +243,10 @@ const CollectActivity: React.FC<{ problem: CollectProblem; level: CollectLevel; 
 };
 
 /* ---------------- 10倍・1/10 ---------------- */
-const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+export const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, level, onNext, onResult }) => {
   const [solved, setSolved] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
+  const [mistakes, setMistakes] = useState(0);
   const recordResult = useProgressStore((s) => s.recordResult);
 
   const question = `${problem.value} を ${scaleOpLabel(problem.op)}は？`;
@@ -251,8 +258,10 @@ const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel; onNext
       playClear();
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'place-value', skillId: `scale-${level}`, label: question, correct: true });
+      onResult?.(mistakes === 0);
     } else {
       playSoftTry();
+      setMistakes((m) => m + 1);
       setHint(isMul ? '倍にすると 各位が 左へ（小数点は 右へ）うごくよ。10倍は1つ、100倍は2つ。' : '小さくすると 各位が 右へ（小数点は 左へ）うごくよ。1/10は1つ、1/100は2つ。');
     }
   };
@@ -283,9 +292,10 @@ const ScaleActivity: React.FC<{ problem: ScaleProblem; level: ScaleLevel; onNext
 };
 
 /* ---------------- たんいと小数（長さ・重さ） ---------------- */
-const UnitActivity: React.FC<{ problem: UnitProblem; level: UnitLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+export const UnitActivity: React.FC<{ problem: UnitProblem; level: UnitLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, level, onNext, onResult }) => {
   const [solved, setSolved] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
+  const [mistakes, setMistakes] = useState(0);
   const recordResult = useProgressStore((s) => s.recordResult);
 
   const question = `${problem.promptStr} は 何 ${problem.answerUnit}？`;
@@ -296,8 +306,10 @@ const UnitActivity: React.FC<{ problem: UnitProblem; level: UnitLevel; onNext: (
       playClear();
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'place-value', skillId: `unit-${level}`, label: question, correct: true });
+      onResult?.(mistakes === 0);
     } else {
       playSoftTry();
+      setMistakes((m) => m + 1);
       setHint(problem.answerUnit === 'm'
         ? '1m = 100cm。100cm で 1m（小数点の左）、のこりの cm は 小数で 表すよ。'
         : '1kg = 1000g。1000g で 1kg（小数点の左）、のこりの g は 小数で 表すよ。');
@@ -330,10 +342,11 @@ const UnitActivity: React.FC<{ problem: UnitProblem; level: UnitLevel; onNext: (
 };
 
 /* ---------------- ○の位の数字は？ ---------------- */
-const PlaceIdActivity: React.FC<{ problem: PlaceIdProblem; level: PlaceIdLevel; onNext: () => void }> = ({ problem, level, onNext }) => {
+export const PlaceIdActivity: React.FC<{ problem: PlaceIdProblem; level: PlaceIdLevel; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, level, onNext, onResult }) => {
   const [solved, setSolved] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
   const [shake, setShake] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
   const recordResult = useProgressStore((s) => s.recordResult);
 
   const question = `${problem.valueStr} の ${problem.placeLabel} の 数字は？`;
@@ -345,8 +358,10 @@ const PlaceIdActivity: React.FC<{ problem: PlaceIdProblem; level: PlaceIdLevel; 
       playClear();
       confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
       recordResult({ moduleId: 'place-value', skillId: `placeid-${level}`, label: question, correct: true });
+      onResult?.(mistakes === 0);
     } else {
       playSoftTry();
+      setMistakes((m) => m + 1);
       setShake(true); setTimeout(() => setShake(false), 450);
       setHint('一の位から 右へ、小数第一位・第二位…と かぞえて、その位の 数字を 見つけよう。');
     }
@@ -373,6 +388,76 @@ const PlaceIdActivity: React.FC<{ problem: PlaceIdProblem; level: PlaceIdLevel; 
               {hint && <div className="mb-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2"><Lightbulb className="text-amber-500 shrink-0" size={20} /><p className="text-muted font-bold">{hint}</p><SpeakButton text={hint} /></div>}
               <Keypad onInput={handle} onBackspace={() => {}} allowDecimal={false} />
             </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ---------------- 数の分解（1.695 = 1を何こ…） ---------------- */
+export const DecomposeActivity: React.FC<{ problem: DecomposeProblem; onNext: () => void; onResult?: (perfect: boolean) => void }> = ({ problem, onNext, onResult }) => {
+  const units = PLACE_UNITS; // 1 / 0.1 / 0.01 / 0.001
+  const targets = [problem.counts.ones, problem.counts.tenths, problem.counts.hundredths, problem.counts.thousandths];
+  const [counts, setCounts] = useState<number[]>([0, 0, 0, 0]);
+  const [solved, setSolved] = useState(false);
+  const [wrong, setWrong] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const recordResult = useProgressStore((s) => s.recordResult);
+
+  const set = (i: number, d: number) => {
+    if (solved) return;
+    setWrong(false);
+    setCounts((c) => c.map((v, idx) => (idx === i ? Math.max(0, Math.min(9, v + d)) : v)));
+  };
+
+  const check = () => {
+    if (counts.every((v, i) => v === targets[i])) {
+      setSolved(true);
+      playClear();
+      confetti({ particleCount: 130, spread: 70, origin: { y: 0.6 } });
+      recordResult({ moduleId: 'place-value', skillId: 'decompose-3', label: `${problem.valueStr} を分解`, correct: true });
+      onResult?.(mistakes === 0);
+    } else { playSoftTry(); setWrong(true); setMistakes((m) => m + 1); }
+  };
+
+  const decompo = units.map((u, i) => `${u.label}を${targets[i]}こ`).join('、');
+
+  return (
+    <div className="h-full overflow-y-auto p-4 md:p-8">
+      <div className="max-w-3xl mx-auto">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-6 md:p-10">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <h2 className="text-xl font-black text-muted">この数は それぞれ 何こ あつめた数？</h2>
+            <SpeakButton text={`${problem.valueStr} は それぞれ 何こ あつめた数`} />
+          </div>
+          <div className="text-center text-5xl font-black text-rose-500 tabular-nums mb-6">{problem.valueStr}</div>
+
+          <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${units.length}, 1fr)` }}>
+            {units.map((u, i) => (
+              <div key={u.label} className="rounded-2xl border-2 border-line p-3 flex flex-col items-center">
+                <div className="px-3 py-1 rounded-full text-white font-black mb-3" style={{ backgroundColor: u.color }}>{u.label}</div>
+                <div className="text-3xl font-black text-content mb-3 tabular-nums">{counts[i]}<span className="text-base text-muted"> こ</span></div>
+                <div className="flex gap-2">
+                  <button onClick={() => set(i, -1)} className="w-10 h-10 rounded-xl bg-surface-3 hover:bg-surface-3 flex items-center justify-center text-muted"><Minus size={20} /></button>
+                  <button onClick={() => set(i, +1)} className="w-10 h-10 rounded-xl text-white flex items-center justify-center" style={{ backgroundColor: u.color }}><Plus size={20} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {solved ? (
+            <div className="text-center mt-8">
+              <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl text-left">
+                {problem.valueStr} は {decompo} あわせた数だね！<SpeakButton text={`${problem.valueStr} は ${decompo} あわせた数`} />
+              </div>
+              <div><button onClick={onNext} className="mt-6 px-8 py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button></div>
+            </div>
+          ) : (
+            <div className="text-center mt-8">
+              {wrong && <p className="text-amber-600 font-bold mb-3">おしい！ それぞれの 位が 何こ分か もう一度 かぞえてみよう。</p>}
+              <button onClick={check} className="px-10 py-4 bg-rose-500 hover:bg-rose-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">これで できた！</button>
+            </div>
           )}
         </div>
       </div>

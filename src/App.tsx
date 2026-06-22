@@ -12,13 +12,14 @@ import { NumberLineModule } from './components/modules/NumberLineModule';
 import { PlaceValueLab } from './components/modules/PlaceValueLab';
 import { ErrorHunterModule } from './components/modules/ErrorHunterModule';
 import { WordProblemModule } from './components/modules/WordProblemModule';
+import { MockTestModule } from './components/modules/MockTestModule';
 import { LogView } from './components/LogView';
 import { ComingSoon } from './components/modules/ComingSoon';
 import { ModuleId } from './store/progressStore';
 import { MODULES } from './constants';
 import { useApplySettings } from './lib/useApplySettings';
 
-type View = { kind: 'HUB' } | { kind: 'LOG' } | { kind: 'MODULE'; id: ModuleId };
+type View = { kind: 'HUB' } | { kind: 'LOG' } | { kind: 'TEST' } | { kind: 'MODULE'; id: ModuleId };
 
 export default function App() {
   const [view, setView] = useState<View>({ kind: 'HUB' });
@@ -52,7 +53,13 @@ export default function App() {
       <AnimatePresence mode="wait">
         {view.kind === 'HUB' && (
           <motion.div key="hub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full">
-            <Hub onSelectModule={(id) => setView({ kind: 'MODULE', id })} onOpenLog={() => setView({ kind: 'LOG' })} />
+            <Hub onSelectModule={(id) => setView({ kind: 'MODULE', id })} onOpenLog={() => setView({ kind: 'LOG' })} onStartTest={() => setView({ kind: 'TEST' })} />
+          </motion.div>
+        )}
+
+        {view.kind === 'TEST' && (
+          <motion.div key="test" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="w-full h-full">
+            <MockTestModule onExit={goHub} />
           </motion.div>
         )}
 

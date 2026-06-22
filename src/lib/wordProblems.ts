@@ -71,9 +71,10 @@ const share: Builder = () => {
 };
 
 const BUILDERS = [combine, remain, groups, share];
+const BY_OP: Record<WpOp, Builder> = { '+': combine, '-': remain, '×': groups, '÷': share };
 
-export function generateWordProblem(): WordProblem {
-  const base = pick(BUILDERS)();
+export function generateWordProblem(forceOp?: WpOp): WordProblem {
+  const base = (forceOp ? BY_OP[forceOp] : pick(BUILDERS))();
   const { choices, correctIndex } = buildChoices(base.a, base.b, base.op);
   const answer = String(calc(base.a, base.b, base.op));
   return {
