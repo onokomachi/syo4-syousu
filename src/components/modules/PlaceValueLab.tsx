@@ -47,6 +47,7 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
   const startPlaceid = (lv: PlaceIdLevel) => { setActivity('placeid'); setPlaceidLevel(lv); setPlaceid(generatePlaceId(lv)); setPhase('SIM'); };
 
   const getMasteryStreak = useProgressStore((s) => s.getMasteryStreak);
+  const getTodaySkillCount = useProgressStore((s) => s.getTodaySkillCount);
 
   if (phase === 'SETUP') {
     const Group: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({ icon, title, children }) => (
@@ -64,27 +65,27 @@ export const PlaceValueLab: React.FC<Props> = ({ onExit }) => {
           <h1 className="text-3xl font-black text-content text-center mb-6">位取りラボ</h1>
           <Group icon={<LayoutGrid size={20} />} title="数をつくる">
             {COMPOSE_LEVELS.map((lv) => (
-              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`compose-${lv.id}`)} onClick={() => startCompose(lv.id)} accentBorder="hover:border-rose-400" />
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`compose-${lv.id}`)} todayCount={getTodaySkillCount(`compose-${lv.id}`)} onClick={() => startCompose(lv.id)} accentBorder="hover:border-rose-400" />
             ))}
           </Group>
           <Group icon={<Boxes size={20} />} title="あつめた数">
             {COLLECT_LEVELS.map((lv) => (
-              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`collect-${lv.id}`)} onClick={() => startCollect(lv.id)} accentBorder="hover:border-rose-400" />
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`collect-${lv.id}`)} todayCount={getTodaySkillCount(`collect-${lv.id}`)} onClick={() => startCollect(lv.id)} accentBorder="hover:border-rose-400" />
             ))}
           </Group>
           <Group icon={<Hash size={20} />} title="○の位の数字">
             {PLACEID_LEVELS.map((lv) => (
-              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`placeid-${lv.id}`)} onClick={() => startPlaceid(lv.id)} accentBorder="hover:border-rose-400" />
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`placeid-${lv.id}`)} todayCount={getTodaySkillCount(`placeid-${lv.id}`)} onClick={() => startPlaceid(lv.id)} accentBorder="hover:border-rose-400" />
             ))}
           </Group>
           <Group icon={<ArrowLeftRight size={20} />} title="10倍・10分の1・100倍・1/100">
             {SCALE_LEVELS.map((lv) => (
-              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`scale-${lv.id}`)} onClick={() => startScale(lv.id)} accentBorder="hover:border-rose-400" />
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`scale-${lv.id}`)} todayCount={getTodaySkillCount(`scale-${lv.id}`)} onClick={() => startScale(lv.id)} accentBorder="hover:border-rose-400" />
             ))}
           </Group>
           <Group icon={<Ruler size={20} />} title="たんいと小数（長さ・重さ）">
             {UNIT_LEVELS.map((lv) => (
-              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`unit-${lv.id}`)} onClick={() => startUnit(lv.id)} accentBorder="hover:border-rose-400" />
+              <LevelCard key={lv.id} label={lv.label} desc={lv.description} mastery={getMasteryStreak(`unit-${lv.id}`)} todayCount={getTodaySkillCount(`unit-${lv.id}`)} onClick={() => startUnit(lv.id)} accentBorder="hover:border-rose-400" />
             ))}
           </Group>
         </div>

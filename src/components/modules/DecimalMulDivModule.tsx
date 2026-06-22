@@ -42,6 +42,7 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
   const effMulLevel = mode === 'adaptive' ? mulAdaptive.level : mulLevel;
   const effDivLevel = mode === 'adaptive' ? divAdaptive.level : divLevel;
   const getMasteryStreak = useProgressStore((s) => s.getMasteryStreak);
+  const getTodaySkillCount = useProgressStore((s) => s.getTodaySkillCount);
 
   const startMul = (lv: MulLevel) => {
     setOp('mul'); setMode('fixed'); setMulLevel(lv); setMulProblem(generateMul(lv)); setPhase('SIM');
@@ -82,6 +83,7 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
                   label={lv.label}
                   desc={lv.description}
                   mastery={getMasteryStreak(`mul-${lv.id}`)}
+                  todayCount={getTodaySkillCount(`mul-${lv.id}`)}
                   onClick={() => startMul(lv.id)}
                   accentBorder="hover:border-violet-400"
                 />
@@ -103,6 +105,7 @@ export const DecimalMulDivModule: React.FC<Props> = ({ onExit }) => {
                   label={lv.label}
                   desc={lv.description}
                   mastery={getMasteryStreak(`div-${lv.id}`)}
+                  todayCount={getTodaySkillCount(`div-${lv.id}`)}
                   onClick={() => startDiv(lv.id)}
                   accentBorder="hover:border-blue-400"
                 />

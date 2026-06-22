@@ -44,6 +44,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const effCompareLevel = mode === 'adaptive' ? compareAdaptive.level : compareLevel;
   const effLineLevel = mode === 'adaptive' ? lineAdaptive.level : lineLevel;
   const getMasteryStreak = useProgressStore((s) => s.getMasteryStreak);
+  const getTodaySkillCount = useProgressStore((s) => s.getTodaySkillCount);
 
   const startCompare = (lv: CompareLevel) => { setActivity('compare'); setMode('fixed'); setCompareLevel(lv); setPair(generateCompare(lv)); setPhase('SIM'); };
   const startLine = (lv: LineLevel) => { setActivity('line'); setMode('fixed'); setLineLevel(lv); setLineProblem(generateLine(lv)); setPhase('SIM'); };
@@ -73,6 +74,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
                   label={lv.label}
                   desc={lv.description}
                   mastery={getMasteryStreak(`compare-${lv.id}`)}
+                  todayCount={getTodaySkillCount(`compare-${lv.id}`)}
                   onClick={() => startCompare(lv.id)}
                   accentBorder="hover:border-amber-400"
                 />
@@ -92,6 +94,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
                   label={lv.label}
                   desc={lv.description}
                   mastery={getMasteryStreak(`line-${lv.id}`)}
+                  todayCount={getTodaySkillCount(`line-${lv.id}`)}
                   onClick={() => startLine(lv.id)}
                   accentBorder="hover:border-amber-400"
                 />
@@ -108,6 +111,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
                   label={lv.label}
                   desc="めもりの 数を よみとろう"
                   mastery={getMasteryStreak(`line-read-${lv.id}`)}
+                  todayCount={getTodaySkillCount(`line-read-${lv.id}`)}
                   onClick={() => startRead(lv.id)}
                   accentBorder="hover:border-amber-400"
                 />
@@ -124,6 +128,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
                   label={lv.label}
                   desc={lv.description}
                   mastery={getMasteryStreak(`order-${lv.id}`)}
+                  todayCount={getTodaySkillCount(`order-${lv.id}`)}
                   onClick={() => startOrder(lv.id)}
                   accentBorder="hover:border-amber-400"
                 />
