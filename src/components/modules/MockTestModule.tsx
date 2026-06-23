@@ -13,7 +13,7 @@ import {
   ComposeActivity, CollectActivity, ScaleActivity, UnitActivity, PlaceIdActivity, DecomposeActivity,
 } from './PlaceValueLab';
 import { CompareActivity, LineReadActivity, OrderActivity } from './NumberLineModule';
-import { AddSubSimulator } from './DecimalAddSubModule';
+import { AddSubSimulator, AddSubMasterSimulator } from './DecimalAddSubModule';
 import { Round as WordRound } from './WordProblemModule';
 import { ErrorRound } from './ErrorHunterModule';
 
@@ -212,7 +212,9 @@ export const MockTestModule: React.FC<Props> = ({ onExit }) => {
       case 'lineRead': return <LineReadActivity {...common} problem={tp.p} level={tp.level} />;
       case 'compare': return <CompareActivity {...common} pair={tp.p} level={tp.level} />;
       case 'scale': return <ScaleActivity {...common} problem={tp.p} level={tp.level} />;
-      case 'addsub': return <AddSubSimulator {...common} problem={tp.p} level={tp.level} buildMode={tp.build} />;
+      case 'addsub': return tp.build
+        ? <AddSubMasterSimulator {...common} problem={tp.p} level={tp.level} />
+        : <AddSubSimulator {...common} problem={tp.p} level={tp.level} buildMode={tp.build} />;
       case 'word': return <WordRound {...common} problem={tp.p} />;
       case 'error': return <ErrorRound ex={tp.p} startStage="fix" onNext={advance} onResult={onResult} />;
       case 'order': return <OrderActivity {...common} problem={tp.p} level={tp.level} />;
