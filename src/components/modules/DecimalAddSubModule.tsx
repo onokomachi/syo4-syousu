@@ -129,7 +129,7 @@ export const DecimalAddSubModule: React.FC<Props> = ({ onExit }) => {
           </div>
           <p className="text-muted font-medium mb-3 text-sm">
             {master
-              ? 'うすい目もり線を めやすに、上の数・下の数・答えを ぜんぶ 自分で ならべて、さいごに「答え合わせ」をするよ。'
+              ? '線は なし。小数点も 自分で 打って、上の数・下の数を 好きな位置で そろえよう。「式をかくにん」してから 計算するよ。'
               : '数字を 正しい 位の ますに 自分で ならべてから 計算するよ。'}
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -536,209 +536,307 @@ export const AddSubSimulator: React.FC<SimProps> = ({ problem, level, buildMode 
 };
 
 /* =========================================================================
- * マスターモード：自由配置の筆算（うすい目安線だけ・全部 自分で組み立て）
- * 上の数・下の数・答えを 好きな位に置き、最後に「答え合わせ」で正誤判定する。
+ * マスターモード：自由配置の筆算（目安線なし・小数点も自分で打つ）
+ *  BUILD   … 上の数・下の数を 好きな位に置き、小数点も 自分で打つ。「式をかくにんする」で検算。
+ *  COMPUTE … 式が正しければ 空白を つめた（位のそろった）筆算にして、答えを 自分で計算。
+ *  DONE    … 「答え合わせ」で正解したら 完了。
+ * テストモードの「立式」問題でも この仕組みで出題する。
  * ======================================================================= */
 interface MasterProps {
   problem: AddSubProblem;
   level: AddSubLevel;
   onNext: () => void;
+  onResult?: (perfect: boolean) => void;
 }
 
-type RowKey = 'A' | 'B' | 'ANS';
+const BUILD_CELL = 48;
+const POINT_W = 18;
 
-export const AddSubMasterSimulator: React.FC<MasterProps> = ({ problem, level, onNext }) => {
+const eqNum = (x: number, y: number) => Math.abs(x - y) < 1e-9;
+
+interface RowParse { ok: boolean; value: number; boundary: number }
+// 自由配置の行を 数として読む。数字は すきまなく 連続・整数部が 1 桁以上 必要。
+// boundary = 小数点の 位置（その列の すぐ左に 点がある という境界 index）。
+function parseFreeRow(digits: Record<number, string>, point: number | null): RowParse {
+  const cols = Object.keys(digits).map(Number).sort((a, b) => a - b);
+  if (cols.length === 0) return { ok: false, value: NaN, boundary: 0 };
+  for (let i = 1; i < cols.length; i++) if (cols[i] !== cols[i - 1] + 1) return { ok: false, value: NaN, boundary: 0 };
+  const boundary = point ?? cols[cols.length - 1] + 1;
+  if (boundary <= cols[0] || boundary > cols[cols.length - 1] + 1) return { ok: false, value: NaN, boundary };
+  const intStr = cols.filter((c) => c < boundary).map((c) => digits[c]).join('');
+  const decStr = cols.filter((c) => c >= boundary).map((c) => digits[c]).join('');
+  const value = parseFloat(decStr ? `${intStr}.${decStr}` : intStr);
+  if (isNaN(value)) return { ok: false, value: NaN, boundary };
+  return { ok: true, value, boundary };
+}
+
+export const AddSubMasterSimulator: React.FC<MasterProps> = ({ problem, level, onNext, onResult }) => {
   const model = useMemo(() => buildColumns(problem), [problem]);
   const recordResult = useProgressStore((s) => s.recordResult);
 
-  // キャンバスの列：必要な位の左右に 2 列ずつ余白を足し、わざと ずらせるようにする
-  const minP = Math.min(...model.places);
-  const maxP = Math.max(...model.places);
-  const canvasMin = minP - 2;
-  const canvasMax = maxP + 2;
-  const canvasPlaces = useMemo(() => {
-    const ps: number[] = [];
-    for (let p = canvasMax; p >= canvasMin; p--) ps.push(p);
-    return ps;
-  }, [canvasMin, canvasMax]);
-  const intPlaces = canvasPlaces.filter((p) => p >= 0);
-  const decPlaces = canvasPlaces.filter((p) => p < 0);
-  const gridWidth = OP_W + intPlaces.length * CELL_W + DOT_W + decPlaces.length * CELL_W;
-  const dotLeft = OP_W + intPlaces.length * CELL_W + DOT_W / 2;
-
-  const [cellsA, setCellsA] = useState<Record<number, string>>({});
-  const [cellsB, setCellsB] = useState<Record<number, string>>({});
-  const [cellsAns, setCellsAns] = useState<Record<number, string>>({});
-  const [selected, setSelected] = useState<{ row: RowKey; place: number } | null>(null);
-  const [checked, setChecked] = useState(false);
-  const [correct, setCorrect] = useState(false);
+  const [stage, setStage] = useState<'BUILD' | 'COMPUTE' | 'DONE'>('BUILD');
+  const [hint, setHint] = useState<string | null>(null);
+  const [mistakes, setMistakes] = useState(0);
   const [recorded, setRecorded] = useState(false);
 
-  const cellsOf = (row: RowKey) => (row === 'A' ? cellsA : row === 'B' ? cellsB : cellsAns);
-  const setterOf = (row: RowKey) =>
-    row === 'A' ? setCellsA : row === 'B' ? setCellsB : setCellsAns;
+  // ---- BUILD（自由配置）----
+  const width = model.places.length + 4; // 必要な幅＋余白（左右に ずらせる）
+  const cols = useMemo(() => Array.from({ length: width }, (_, i) => i), [width]);
+  const [digitsA, setDigitsA] = useState<Record<number, string>>({});
+  const [digitsB, setDigitsB] = useState<Record<number, string>>({});
+  const [pointA, setPointA] = useState<number | null>(null);
+  const [pointB, setPointB] = useState<number | null>(null);
+  const [sel, setSel] = useState<{ row: 'A' | 'B'; col: number } | null>(null);
 
-  // 整数スケールで値を比較（小数点は目安線=固定基準）。空の余白列は 0 寄与で自然に無視される。
-  const SCALE = Math.round(10 ** -canvasMin);
-  const toInt = (cells: Record<number, string>) =>
-    Object.entries(cells).reduce((s, [p, d]) => s + Number(d) * Math.round(10 ** (Number(p) - canvasMin)), 0);
-  const targetInt = (x: number) => Math.round(x * SCALE);
+  const digitsOf = (row: 'A' | 'B') => (row === 'A' ? digitsA : digitsB);
+  const setDigitsOf = (row: 'A' | 'B') => (row === 'A' ? setDigitsA : setDigitsB);
+  const setPointOf = (row: 'A' | 'B') => (row === 'A' ? setPointA : setPointB);
 
-  const select = (row: RowKey, place: number) => {
-    if (checked) return;
-    setSelected({ row, place });
-  };
-  const handleInput = (d: string) => {
-    if (checked || !selected || d === '.') return;
-    const setter = setterOf(selected.row);
-    setter((prev) => ({ ...prev, [selected.place]: d }));
+  const inputBuild = (d: string) => {
+    if (!sel) return;
+    if (d === '.') { setPointOf(sel.row)(sel.col + 1); setHint(null); return; } // 点は 選んだ ますの 右に打つ
+    setDigitsOf(sel.row)((prev) => ({ ...prev, [sel.col]: d }));
+    setHint(null);
     playCorrect();
   };
-  const handleBackspace = () => {
-    if (checked || !selected) return;
-    const setter = setterOf(selected.row);
-    setter((prev) => {
-      const next = { ...prev };
-      delete next[selected.place];
-      return next;
-    });
+  const backspaceBuild = () => {
+    if (!sel) return;
+    setDigitsOf(sel.row)((prev) => { const n = { ...prev }; delete n[sel.col]; return n; });
+  };
+  const resetBuild = () => {
+    setDigitsA({}); setDigitsB({}); setPointA(null); setPointB(null); setSel(null); setHint(null);
   };
 
-  const check = () => {
-    const alignOK = toInt(cellsA) === targetInt(problem.a) && toInt(cellsB) === targetInt(problem.b);
-    const ansOK = toInt(cellsAns) === targetInt(model.result);
-    const ok = alignOK && ansOK;
-    setCorrect(ok);
-    setChecked(true);
-    setSelected(null);
-    if (ok) {
-      playClear();
-      confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-    } else {
-      playSoftTry();
+  const confirmExpr = () => {
+    const ra = parseFreeRow(digitsA, pointA);
+    const rb = parseFreeRow(digitsB, pointB);
+    if (!ra.ok || !eqNum(ra.value, problem.a)) {
+      setMistakes((m) => m + 1);
+      setHint(`上の数が 「${problem.a}」に なるように、数字を すきまなく ならべて、小数点を 打とう。`);
+      return;
     }
+    if (!rb.ok || !eqNum(rb.value, problem.b)) {
+      setMistakes((m) => m + 1);
+      setHint(`下の数が 「${problem.b}」に なるように ならべよう。`);
+      return;
+    }
+    if (ra.boundary !== rb.boundary) {
+      setMistakes((m) => m + 1);
+      setHint('小数点（一の位）を たてに そろえよう。上と下で 点の いちが ずれているよ。');
+      return;
+    }
+    setHint(null);
+    setStage('COMPUTE'); // 正しければ 位のそろった（詰めた）筆算で 計算へ
+  };
+
+  // ---- COMPUTE（位がそろった 正準レイアウトで 答えを 自分で計算）----
+  const intPlaces = model.places.filter((p) => p >= 0);
+  const decPlaces = model.places.filter((p) => p < 0);
+  const computeWidth = OP_W + intPlaces.length * CELL_W + DOT_W + decPlaces.length * CELL_W;
+  const [ansCells, setAnsCells] = useState<Record<number, string>>({});
+  const [ansSel, setAnsSel] = useState<number | null>(null);
+  const activeAns = model.answer.filter((a) => a.active);
+
+  const inputCompute = (d: string) => {
+    if (ansSel === null || d === '.') return;
+    setAnsCells((prev) => ({ ...prev, [ansSel]: d }));
+    setHint(null);
+    playCorrect();
+  };
+  const backspaceCompute = () => {
+    if (ansSel === null) return;
+    setAnsCells((prev) => { const n = { ...prev }; delete n[ansSel]; return n; });
+  };
+
+  const checkAnswer = () => {
+    const ok = activeAns.every((a) => ansCells[a.place] === a.expected);
+    if (!ok) {
+      setMistakes((m) => m + 1);
+      setHint('もう一度 計算を たしかめよう。右の位から じゅんばんに もとめてね。');
+      playSoftTry();
+      return;
+    }
+    const perfect = mistakes === 0;
+    playClear();
+    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     if (!recorded) {
       recordResult({
         moduleId: 'decimal-addsub',
         skillId: `addsub-master-${level}`,
         label: `${problem.a} ${problem.op} ${problem.b}`,
-        correct: ok,
+        correct: perfect,
       });
+      onResult?.(perfect);
       setRecorded(true);
     }
+    setStage('DONE');
   };
 
   const retry = () => {
-    setCellsA({});
-    setCellsB({});
-    setCellsAns({});
-    setSelected(null);
-    setChecked(false);
-    setCorrect(false);
+    resetBuild();
+    setAnsCells({}); setAnsSel(null);
+    setStage('BUILD');
   };
 
-  const alignOK = toInt(cellsA) === targetInt(problem.a) && toInt(cellsB) === targetInt(problem.b);
-
-  const MasterCell: React.FC<{ row: RowKey; place: number; op?: string }> = ({ row, place }) => {
-    const isSel = selected?.row === row && selected.place === place;
-    const digit = cellsOf(row)[place];
-    const color = row === 'ANS' ? 'text-emerald-600' : 'text-content';
+  /* ---------- BUILD 画面 ---------- */
+  const buildRowWidth = OP_W + width * BUILD_CELL + (width + 1) * POINT_W;
+  const Gap: React.FC<{ row: 'A' | 'B'; k: number }> = ({ row, k }) => {
+    const here = (row === 'A' ? pointA : pointB) === k;
     return (
       <button
-        onClick={() => select(row, place)}
-        disabled={checked}
-        style={{ width: CELL_W, height: ROW_H }}
-        className={`flex items-center justify-center text-4xl font-black rounded-xl transition-colors ${
-          isSel ? 'bg-emerald-50 ring-4 ring-emerald-400 ring-inset'
-            : !checked ? 'ring-1 ring-line ring-inset hover:bg-surface-2' : ''
+        onClick={() => { setPointOf(row)(here ? null : k); setHint(null); }}
+        style={{ width: POINT_W, height: ROW_H }}
+        className="flex items-end justify-center pb-2 shrink-0"
+        aria-label="ここに小数点"
+      >
+        <span className={`text-3xl font-black leading-none ${here ? 'text-amber-500' : 'text-line hover:text-amber-300'}`}>.</span>
+      </button>
+    );
+  };
+  const BuildCell: React.FC<{ row: 'A' | 'B'; col: number }> = ({ row, col }) => {
+    const isSel = sel?.row === row && sel.col === col;
+    const d = digitsOf(row)[col];
+    return (
+      <button
+        onClick={() => setSel({ row, col })}
+        style={{ width: BUILD_CELL, height: ROW_H }}
+        className={`flex items-center justify-center text-4xl font-black rounded-xl shrink-0 transition-colors ${
+          isSel ? 'bg-emerald-50 ring-4 ring-emerald-400 ring-inset' : 'ring-1 ring-line ring-inset hover:bg-surface-2'
         }`}
       >
-        {digit !== undefined ? <span className={color}>{digit}</span>
+        {d !== undefined ? <span className="text-content">{d}</span>
+          : isSel ? <span className="text-emerald-300 animate-pulse">？</span> : null}
+      </button>
+    );
+  };
+  const buildRow = (row: 'A' | 'B', op?: string) => (
+    <div className="flex items-center" style={{ height: ROW_H }}>
+      <div style={{ width: OP_W, height: ROW_H }} className="flex items-center justify-center text-3xl font-black text-muted shrink-0">{op ?? ''}</div>
+      {cols.map((c) => (
+        <React.Fragment key={c}>
+          <Gap row={row} k={c} />
+          <BuildCell row={row} col={c} />
+        </React.Fragment>
+      ))}
+      <Gap row={row} k={width} />
+    </div>
+  );
+
+  /* ---------- COMPUTE 画面（正準・詰めた筆算） ---------- */
+  const FixedCell: React.FC<{ cell: { kind: string; digit?: string } }> = ({ cell }) => (
+    <div style={{ width: CELL_W, height: ROW_H }} className="flex items-center justify-center text-4xl font-black">
+      {cell.kind === 'helperZero' ? <span className="text-faint">{cell.digit}</span>
+        : cell.kind === 'digit' ? <span className="text-content">{cell.digit}</span> : null}
+    </div>
+  );
+  const DotCell = () => (
+    <div style={{ width: DOT_W, height: ROW_H }} className="flex items-end justify-center pb-2">
+      <span className="text-amber-500 font-black text-4xl leading-none">.</span>
+    </div>
+  );
+  const fixedRow = (cells: { place: number; kind: string; digit?: string }[], op?: string) => (
+    <div className="flex items-center" style={{ width: computeWidth, height: ROW_H }}>
+      <div style={{ width: OP_W, height: ROW_H }} className="flex items-center justify-center text-3xl font-black text-muted">{op ?? ''}</div>
+      {intPlaces.map((p) => <FixedCell key={p} cell={cells.find((c) => c.place === p)!} />)}
+      <DotCell />
+      {decPlaces.map((p) => <FixedCell key={p} cell={cells.find((c) => c.place === p)!} />)}
+    </div>
+  );
+  const AnsCell: React.FC<{ place: number }> = ({ place }) => {
+    const a = model.answer.find((x) => x.place === place)!;
+    const isSel = ansSel === place;
+    return (
+      <button
+        onClick={() => a.active && setAnsSel(place)}
+        disabled={!a.active}
+        style={{ width: CELL_W, height: ROW_H }}
+        className={`flex items-center justify-center text-4xl font-black rounded-xl transition-colors ${
+          isSel ? 'bg-emerald-50 ring-4 ring-emerald-400 ring-inset' : a.active ? 'ring-1 ring-line ring-inset hover:bg-surface-2' : ''
+        }`}
+      >
+        {ansCells[place] !== undefined ? <span className="text-emerald-600">{ansCells[place]}</span>
           : isSel ? <span className="text-emerald-300 animate-pulse">？</span> : null}
       </button>
     );
   };
 
-  const renderRow = (row: RowKey, op?: string) => (
-    <div className="flex items-center" style={{ width: gridWidth, height: ROW_H }}>
-      <div style={{ width: OP_W, height: ROW_H }} className="flex items-center justify-center text-3xl font-black text-muted">
-        {op ?? ''}
-      </div>
-      {intPlaces.map((p) => <MasterCell key={p} row={row} place={p} />)}
-      <div style={{ width: DOT_W, height: ROW_H }} />
-      {decPlaces.map((p) => <MasterCell key={p} row={row} place={p} />)}
-    </div>
-  );
-
   return (
     <div className="flex flex-col md:flex-row h-full">
-      {/* 計算ワークスペース */}
+      {/* ワークスペース */}
       <div className="flex-1 overflow-auto p-4 md:p-10 flex justify-center items-start">
-        <div className="bg-surface p-8 md:p-12 rounded-[36px] shadow-2xl border border-line relative">
+        <div className="bg-surface p-8 md:p-12 rounded-[36px] shadow-2xl border border-line">
           <div className="flex items-center justify-center gap-3 mb-6">
             <h2 className="text-2xl font-black text-content tabular-nums">{problem.a} {problem.op} {problem.b}</h2>
           </div>
 
-          <div className="relative font-mono" style={{ width: gridWidth }}>
-            {/* 小数点の うすい目安線（位をそろえる基準） */}
-            <div className="absolute top-0 bottom-0 w-0.5 bg-amber-300/40 rounded-full z-0" style={{ left: dotLeft - 1 }} />
-            <div className="relative z-10">
-              {renderRow('A')}
-              {renderRow('B', problem.op)}
-              <div className="border-b-4 border-slate-800 rounded-full" style={{ width: gridWidth }} />
-              {renderRow('ANS')}
+          {stage === 'BUILD' ? (
+            <div className="font-mono overflow-x-auto">
+              {buildRow('A')}
+              {buildRow('B', problem.op)}
+              <div className="border-b-4 border-slate-800 rounded-full mt-1" style={{ width: buildRowWidth }} />
             </div>
-          </div>
+          ) : (
+            <div className="font-mono">
+              {fixedRow(model.rowA)}
+              {fixedRow(model.rowB, problem.op)}
+              <div className="border-b-4 border-slate-800 rounded-full" style={{ width: computeWidth }} />
+              <div className="flex items-center" style={{ width: computeWidth, height: ROW_H }}>
+                <div style={{ width: OP_W, height: ROW_H }} />
+                {intPlaces.map((p) => <AnsCell key={p} place={p} />)}
+                <DotCell />
+                {decPlaces.map((p) => <AnsCell key={p} place={p} />)}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* サイドパネル */}
       <div className="w-full md:w-[400px] bg-surface border-l border-line p-6 md:p-8 flex flex-col gap-5 overflow-y-auto">
-        {checked ? (
-          <div className={`flex-1 flex flex-col justify-center items-center p-6 rounded-3xl text-center border ${correct ? 'bg-emerald-50 border-emerald-100' : 'bg-amber-50 border-amber-100'}`}>
-            <span className="text-6xl mb-4">{correct ? '🏆' : '🤔'}</span>
-            <h3 className={`text-2xl font-black mb-2 ${correct ? 'text-emerald-800' : 'text-amber-700'}`}>
-              {correct ? 'せいかい！' : 'もう一歩！'}
-            </h3>
-            <p className={`font-bold mb-2 ${correct ? 'text-emerald-600' : 'text-amber-700'}`}>
-              {correct
-                ? `${problem.a} ${problem.op} ${problem.b} = ${model.result}`
-                : !alignOK
-                  ? '数の 位が ずれていないかな？小数点の 線に そろえて たしかめよう。'
-                  : '位は そろっているよ。もう一度 計算を たしかめよう。'}
-            </p>
-            {!correct && (
-              <p className="text-faint font-bold text-sm mb-2">正しい 答え：{problem.a} {problem.op} {problem.b} = {model.result}</p>
-            )}
-            <div className="flex flex-col gap-2 w-full mt-4">
-              <button onClick={retry} className="w-full py-3 bg-surface border-2 border-emerald-300 text-emerald-700 rounded-2xl font-black text-lg hover:bg-emerald-50 transition-all active:scale-95">
-                もう一度 やってみる
-              </button>
-              <button onClick={onNext} className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">
-                つぎの もんだい
-              </button>
-            </div>
+        {stage === 'DONE' ? (
+          <div className="flex-1 flex flex-col justify-center items-center p-6 bg-emerald-50 border border-emerald-100 rounded-3xl text-center">
+            <span className="text-6xl mb-4">{mistakes === 0 ? '🏆' : '🎉'}</span>
+            <h3 className="text-2xl font-black text-emerald-800 mb-2">{mistakes === 0 ? 'パーフェクト！' : 'できたね！'}</h3>
+            <p className="text-emerald-600 font-bold mb-2">{problem.a} {problem.op} {problem.b} = {model.result}</p>
+            <button onClick={onNext} className="w-full py-4 mt-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">
+              つぎの もんだい
+            </button>
+            <button onClick={retry} className="w-full py-3 mt-2 text-faint hover:text-muted font-bold">もう一度 やってみる</button>
           </div>
         ) : (
           <>
-            <div className="bg-emerald-50 p-6 rounded-3xl border border-emerald-100">
+            <div className={`p-6 rounded-3xl border ${hint ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-100'}`}>
               <h3 className="text-emerald-700 font-black text-lg flex items-center gap-2 mb-2">
-                <Lightbulb size={20} /> マスターモード
+                <Lightbulb size={20} /> {stage === 'BUILD' ? '式を 組み立てよう' : '計算しよう'}
               </h3>
               <p className="text-muted font-bold leading-relaxed">
-                ますを タップ → 数字キーで 上の数・下の数・答えを 自分で ならべよう。うすい線が 小数点の めやすだよ。できたら「答え合わせ」！
+                {hint ?? (stage === 'BUILD'
+                  ? 'ますを タップ → 数字キーで 上の数・下の数を ならべよう。「・」キー（か ますの すきま）で 小数点を 打って、上と下の 点を たてに そろえてね。'
+                  : '位が そろったね！答えの ますを タップして、右の位から 計算しよう。')}
               </p>
             </div>
 
             <div className="flex-1 flex flex-col justify-center">
-              <Keypad onInput={handleInput} onBackspace={handleBackspace} allowDecimal={false} />
+              {stage === 'BUILD'
+                ? <Keypad onInput={inputBuild} onBackspace={backspaceBuild} allowDecimal />
+                : <Keypad onInput={inputCompute} onBackspace={backspaceCompute} allowDecimal={false} />}
             </div>
 
+            {stage === 'BUILD' ? (
+              <button onClick={confirmExpr} className="flex items-center justify-center gap-2 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95 shrink-0">
+                <CheckCircle2 size={22} /> 式を かくにんする
+              </button>
+            ) : (
+              <button onClick={checkAnswer} className="flex items-center justify-center gap-2 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95 shrink-0">
+                <CheckCircle2 size={22} /> 答え合わせを する
+              </button>
+            )}
+
             <button
-              onClick={check}
-              className="flex items-center justify-center gap-2 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95 shrink-0"
+              onClick={stage === 'BUILD' ? resetBuild : () => { setHint(null); setStage('BUILD'); }}
+              className="flex items-center justify-center gap-2 text-faint hover:text-muted py-2 font-bold border-t border-line shrink-0"
             >
-              <CheckCircle2 size={22} /> 答え合わせを する
+              <RotateCcw size={18} /> {stage === 'BUILD' ? 'ぜんぶ けす' : '式を なおす'}
             </button>
           </>
         )}
