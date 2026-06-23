@@ -80,6 +80,11 @@ export default function App() {
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[-1] overflow-hidden">
         <div className="absolute inset-0" style={{ backgroundImage: `radial-gradient(#1e293b 1.5px, transparent 1.5px)`, backgroundSize: '40px 40px' }} />
       </div>
+
+      {/* 画面左下のクレジット表記（ごく小さく） */}
+      <div className="fixed bottom-1 left-2 z-50 pointer-events-none text-[10px] leading-none text-faint/60 select-none">
+        presented my onokomachi
+      </div>
     </div>
   );
 }
