@@ -34,7 +34,7 @@ export const MatrixRain: React.FC = () => {
     window.addEventListener('resize', resize);
 
     let last = 0;
-    const interval = 60; // ms ごとに 1 ステップ（ゆっくりめ）
+    const interval = 45; // ms ごとに 1 ステップ
 
     const draw = (t: number) => {
       rafRef.current = requestAnimationFrame(draw);
@@ -71,7 +71,7 @@ export const MatrixRain: React.FC = () => {
     <canvas
       ref={canvasRef}
       aria-hidden
-      className="fixed inset-0 pointer-events-none z-0 opacity-[0.18]"
+      className="fixed inset-0 pointer-events-none z-0 opacity-40"
     />
   );
 };
