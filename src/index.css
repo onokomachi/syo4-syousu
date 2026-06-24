@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=DotGothic16&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=DotGothic16&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&family=Yuji+Syuku&family=Zen+Antique+Soft&display=swap');
 @import "tailwindcss";
 
 /*
@@ -41,19 +41,20 @@
     --c-brand-strong: #1d4ed8;
     --c-on-brand: #ffffff;
   }
-  /* 目にやさしいクリーム */
+  /* クリーム = 和紙×墨絵（わし・すみえ）テーマ：生成りの和紙 × 墨黒 × 朱。
+     パネルは半透明の和紙にして全体の紙テクスチャを透かす。 */
   body[data-theme='cream'] {
-    --c-bg: #f3ead4;
-    --c-surface: #fffdf6;
-    --c-surface-2: #f7f1e2;
-    --c-surface-3: #ece2cc;
-    --c-content: #3c3528;
-    --c-muted: #7b6e57;
-    --c-faint: #a99d84;
-    --c-line: #e6dabf;
-    --c-brand: #b45309;
-    --c-brand-strong: #92400e;
-    --c-on-brand: #fffdf6;
+    --c-bg: #e3d6b4;
+    --c-surface: rgba(247, 240, 220, 0.72);
+    --c-surface-2: rgba(238, 228, 202, 0.78);
+    --c-surface-3: rgba(225, 211, 178, 0.85);
+    --c-content: #1f1408;
+    --c-muted: #6b5535;
+    --c-faint: #9d8762;
+    --c-line: #c2ab83;
+    --c-brand: #b1342a;
+    --c-brand-strong: #8a261d;
+    --c-on-brand: #f7f0dc;
   }
   /* ダーク = マトリックス（電脳世界）テーマ：真っ黒 × 蛍光グリーン。
      パネルは半透明にして背後のデジタルレインを透かす。 */
@@ -81,6 +82,12 @@
     font-family: "DotGothic16", "Share Tech Mono", "JetBrains Mono", ui-monospace, monospace;
     text-shadow: 0 0 5px rgba(0, 255, 65, 0.5), 0 0 12px rgba(0, 255, 65, 0.25);
     letter-spacing: 0.04em;
+  }
+
+  /* 和紙×墨絵世界観：筆書き／明朝フォント＋わずかな墨にじみ */
+  body[data-theme='cream'] {
+    font-family: "Yuji Syuku", "Zen Antique Soft", "BIZ UDPGothic", serif;
+    letter-spacing: 0.03em;
   }
 }
 
@@ -203,6 +210,128 @@ body[data-theme='dark']::after {
     rgba(0, 255, 65, 0.04) 3px,
     rgba(0, 255, 65, 0.04) 3px
   );
+}
+
+/* =====================================================================
+ * 和紙×墨絵テーマ（cream）の一括上書き（@layer 外＝ユーティリティに勝つ）。
+ * ハードコードされた明るい固定色を 和紙×墨×朱（しゅ） の世界観へ変換する。
+ * ===================================================================== */
+
+/* 明るい淡色背景・白 → 半透明の和紙パネル */
+body[data-theme='cream'] .bg-white,
+body[data-theme='cream'] .bg-blue-50, body[data-theme='cream'] .bg-blue-100,
+body[data-theme='cream'] .bg-sky-50, body[data-theme='cream'] .bg-indigo-50,
+body[data-theme='cream'] .bg-emerald-50, body[data-theme='cream'] .bg-emerald-100,
+body[data-theme='cream'] .bg-green-50, body[data-theme='cream'] .bg-green-100,
+body[data-theme='cream'] .bg-teal-50, body[data-theme='cream'] .bg-cyan-50,
+body[data-theme='cream'] .bg-violet-50, body[data-theme='cream'] .bg-violet-100,
+body[data-theme='cream'] .bg-purple-50, body[data-theme='cream'] .bg-amber-50,
+body[data-theme='cream'] .bg-amber-100, body[data-theme='cream'] .bg-orange-50,
+body[data-theme='cream'] .bg-rose-50, body[data-theme='cream'] .bg-rose-100,
+body[data-theme='cream'] .bg-red-50, body[data-theme='cream'] .bg-pink-50,
+body[data-theme='cream'] .bg-slate-50, body[data-theme='cream'] .bg-slate-100,
+body[data-theme='cream'] .bg-slate-200 {
+  background-color: rgba(244, 236, 214, 0.78) !important;
+  border-color: rgba(120, 95, 55, 0.32);
+}
+
+/* 濃い原色背景・グラデ（ボタン・バナー）→ 墨のグラデ＋朱の枠 */
+body[data-theme='cream'] .bg-blue-500, body[data-theme='cream'] .bg-blue-600,
+body[data-theme='cream'] .bg-blue-700, body[data-theme='cream'] .bg-indigo-500,
+body[data-theme='cream'] .bg-indigo-600, body[data-theme='cream'] .bg-emerald-500,
+body[data-theme='cream'] .bg-emerald-600, body[data-theme='cream'] .bg-green-500,
+body[data-theme='cream'] .bg-green-600, body[data-theme='cream'] .bg-violet-500,
+body[data-theme='cream'] .bg-violet-600, body[data-theme='cream'] .bg-amber-500,
+body[data-theme='cream'] .bg-amber-600, body[data-theme='cream'] .bg-rose-500,
+body[data-theme='cream'] .bg-rose-600, body[data-theme='cream'] .bg-red-500,
+body[data-theme='cream'] .bg-slate-800, body[data-theme='cream'] .bg-slate-900,
+body[data-theme='cream'] .bg-gradient-to-r, body[data-theme='cream'] .bg-gradient-to-br,
+body[data-theme='cream'] .bg-gradient-to-b, body[data-theme='cream'] .bg-gradient-to-bl {
+  background-color: #2b2114 !important;
+  background-image: linear-gradient(135deg, #3a2e1b, #20170a) !important;
+  border: 1px solid rgba(177, 52, 42, 0.6);
+  box-shadow: 0 6px 18px rgba(40, 28, 12, 0.28);
+}
+
+/* 半透明の白タイル（bg-white/20 等）→ 朱タイル */
+body[data-theme='cream'] [class*="bg-white/"] {
+  background-color: rgba(177, 52, 42, 0.16) !important;
+}
+
+/* 原色テキスト → 朱（墨絵の差し色） */
+body[data-theme='cream'] .text-blue-500, body[data-theme='cream'] .text-blue-600,
+body[data-theme='cream'] .text-blue-700, body[data-theme='cream'] .text-blue-800,
+body[data-theme='cream'] .text-sky-600, body[data-theme='cream'] .text-indigo-600,
+body[data-theme='cream'] .text-emerald-600, body[data-theme='cream'] .text-emerald-700,
+body[data-theme='cream'] .text-green-600, body[data-theme='cream'] .text-green-700,
+body[data-theme='cream'] .text-teal-600, body[data-theme='cream'] .text-cyan-600,
+body[data-theme='cream'] .text-violet-600, body[data-theme='cream'] .text-violet-700,
+body[data-theme='cream'] .text-purple-600, body[data-theme='cream'] .text-amber-600,
+body[data-theme='cream'] .text-amber-700, body[data-theme='cream'] .text-amber-800,
+body[data-theme='cream'] .text-orange-600, body[data-theme='cream'] .text-rose-500,
+body[data-theme='cream'] .text-rose-600, body[data-theme='cream'] .text-red-500,
+body[data-theme='cream'] .text-red-600, body[data-theme='cream'] .text-pink-600 {
+  color: #a8312a !important;
+}
+
+/* 白文字（濃色ボタン上）は和紙色のクリームへ */
+body[data-theme='cream'] .text-white {
+  color: #f4ecd6 !important;
+}
+
+/* 原色ボーダー → 薄墨 */
+body[data-theme='cream'] .border-blue-100, body[data-theme='cream'] .border-blue-200,
+body[data-theme='cream'] .border-blue-300, body[data-theme='cream'] .border-amber-100,
+body[data-theme='cream'] .border-amber-200, body[data-theme='cream'] .border-amber-300,
+body[data-theme='cream'] .border-emerald-200, body[data-theme='cream'] .border-emerald-300,
+body[data-theme='cream'] .border-violet-200, body[data-theme='cream'] .border-rose-200,
+body[data-theme='cream'] .border-green-200, body[data-theme='cream'] .border-green-300,
+body[data-theme='cream'] .border-slate-200, body[data-theme='cream'] .border-slate-300 {
+  border-color: rgba(120, 95, 55, 0.45) !important;
+}
+
+/* リング色 → 朱 */
+body[data-theme='cream'] .ring-blue-200, body[data-theme='cream'] .ring-amber-200,
+body[data-theme='cream'] .ring-emerald-200, body[data-theme='cream'] .ring-violet-200,
+body[data-theme='cream'] .ring-rose-200 {
+  --tw-ring-color: rgba(177, 52, 42, 0.4) !important;
+}
+
+/* 枠線つきカードに和紙のやわらかな影 */
+body[data-theme='cream'] .border-line,
+body[data-theme='cream'] .border {
+  box-shadow: 0 4px 14px rgba(60, 44, 20, 0.12);
+}
+
+/* 筆算セルは数字を読みやすい明朝で */
+body[data-theme='cream'] .calc-cell {
+  font-family: "Zen Antique Soft", "BIZ UDPGothic", serif;
+}
+
+/* 全画面に和紙の繊維テクスチャ（うっすら） */
+body[data-theme='cream']::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0.09;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='w'><feTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23w)'/></svg>");
+  background-size: 180px 180px;
+}
+
+/* 四隅に淡い墨のにじみ（墨絵の余白感） */
+body[data-theme='cream']::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 99;
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(31, 20, 8, 0.12), transparent 30%),
+    radial-gradient(120% 80% at 100% 100%, rgba(31, 20, 8, 0.10), transparent 32%);
+  mix-blend-mode: multiply;
 }
 
 /* 筆算グリッド用（トークン化） */
