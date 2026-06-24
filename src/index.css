@@ -55,24 +55,51 @@
     --c-brand-strong: #92400e;
     --c-on-brand: #fffdf6;
   }
-  /* ダーク */
+  /* ダーク = マトリックス（電脳世界）テーマ：黒 × 蛍光グリーン */
   body[data-theme='dark'] {
-    --c-bg: #0b1220;
-    --c-surface: #1b2536;
-    --c-surface-2: #161f2e;
-    --c-surface-3: #2c3a4f;
-    --c-content: #f1f5f9;
-    --c-muted: #9fb0c5;
-    --c-faint: #6b7c93;
-    --c-line: #2f3c50;
-    --c-brand: #3b82f6;
-    --c-brand-strong: #60a5fa;
-    --c-on-brand: #0b1220;
+    --c-bg: #000600;
+    --c-surface: #050f06;
+    --c-surface-2: #030a04;
+    --c-surface-3: #0e2a14;
+    --c-content: #5dff7a;
+    --c-muted: #2fc745;
+    --c-faint: #1c7a2c;
+    --c-line: #167a28;
+    --c-brand: #00ff41;
+    --c-brand-strong: #7dff5e;
+    --c-on-brand: #001503;
   }
 
   body {
     @apply text-content font-sans antialiased overflow-hidden;
     background-color: var(--color-bg);
+  }
+
+  /* マトリックス世界観：等幅フォント＋文字のネオン発光（日本語は UD ゴシックにフォールバック） */
+  body[data-theme='dark'] {
+    font-family: "JetBrains Mono", "BIZ UDPGothic", ui-monospace, SFMono-Regular, monospace;
+    text-shadow: 0 0 6px rgba(0, 255, 65, 0.35);
+    letter-spacing: 0.02em;
+  }
+  /* パネル・枠をうっすら緑に発光させる */
+  body[data-theme='dark'] .calc-cell {
+    box-shadow: inset 0 0 8px rgba(0, 255, 65, 0.12);
+  }
+  /* 画面全体にうっすら走査線（CRT スキャンライン）を重ねる */
+  body[data-theme='dark']::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0px,
+      rgba(0, 0, 0, 0) 2px,
+      rgba(0, 20, 0, 0.18) 3px,
+      rgba(0, 20, 0, 0.18) 3px
+    );
+    mix-blend-mode: multiply;
   }
 }
 
