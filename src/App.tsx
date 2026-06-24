@@ -18,6 +18,7 @@ import { ComingSoon } from './components/modules/ComingSoon';
 import { ModuleId } from './store/progressStore';
 import { MODULES } from './constants';
 import { useApplySettings } from './lib/useApplySettings';
+import { MatrixRain } from './components/ui/MatrixRain';
 
 type View = { kind: 'HUB' } | { kind: 'LOG' } | { kind: 'TEST' } | { kind: 'MODULE'; id: ModuleId };
 
@@ -50,6 +51,10 @@ export default function App() {
 
   return (
     <div className="w-full h-screen overflow-hidden select-none bg-bg">
+      {/* マトリックス（ダークテーマ）専用のデジタルレイン背景 */}
+      <MatrixRain />
+
+      <div className="relative z-10 w-full h-full">
       <AnimatePresence mode="wait">
         {view.kind === 'HUB' && (
           <motion.div key="hub" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="w-full h-full">
@@ -75,6 +80,7 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
 
       {/* 背景のドット装飾 */}
       <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[-1] overflow-hidden">

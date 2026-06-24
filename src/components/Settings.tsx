@@ -4,7 +4,7 @@
  */
 import React from 'react';
 import { motion } from 'motion/react';
-import { X, Sun, Coffee, Moon, Music, Music2 } from 'lucide-react';
+import { X, Sun, Coffee, Terminal, Music, Music2 } from 'lucide-react';
 import { useSettingsStore, Theme, FontScale } from '../store/settingsStore';
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 const THEMES: { id: Theme; label: string; icon: React.ReactNode; swatch: string }[] = [
   { id: 'light', label: 'ふつう', icon: <Sun size={22} />, swatch: 'bg-surface border-slate-300' },
   { id: 'cream', label: 'クリーム', icon: <Coffee size={22} />, swatch: 'bg-[#f6efdc] border-amber-300' },
-  { id: 'dark', label: 'ダーク', icon: <Moon size={22} />, swatch: 'bg-slate-800 border-slate-600' },
+  { id: 'dark', label: 'マトリックス', icon: <Terminal size={22} />, swatch: 'bg-black border-green-500' },
 ];
 
 const FONTS: { id: FontScale; label: string; sample: string }[] = [
