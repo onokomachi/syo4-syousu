@@ -22,6 +22,8 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   const logs = useProgressStore((s) => s.logs);
   const maxStreak = useProgressStore((s) => s.maxStreak);
   const currentStreak = useProgressStore((s) => s.currentStreak);
+  const totalCorrect = useProgressStore((s) => s.totalCorrect);
+  const moduleCountsAll = useProgressStore((s) => s.moduleCounts);
   const [scope, setScope] = React.useState<'all' | 'today'>('all');
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
@@ -29,15 +31,15 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   today.setHours(0, 0, 0, 0);
   const todayTs = today.getTime();
 
-  const totalCorrect = logs.filter((l) => l.correct).length;
   const countToday = logs.filter((l) => l.ts >= todayTs && l.correct).length;
 
-  // バッジ判定は累計（all-time）で固定
+  // バッジ判定・「すべて」は累計カウンタ（頭打ちしない）を使う
   const moduleCounts: Record<string, number> = {};
-  MODULES.forEach((m) => (moduleCounts[m.id] = logs.filter((l) => l.moduleId === m.id && l.correct).length));
-  // 表示用は すべて／今日 で切替
-  const moduleCountsView: Record<string, number> = {};
-  MODULES.forEach((m) => (moduleCountsView[m.id] = logs.filter((l) => l.moduleId === m.id && l.correct && (scope === 'all' || l.ts >= todayTs)).length));
+  MODULES.forEach((m) => (moduleCounts[m.id] = moduleCountsAll[m.id] ?? 0));
+  // 「今日」は当日の logs（直近なので 200件キャップ内に収まる）から集計
+  const moduleCountsToday: Record<string, number> = {};
+  MODULES.forEach((m) => (moduleCountsToday[m.id] = logs.filter((l) => l.moduleId === m.id && l.correct && l.ts >= todayTs).length));
+  const moduleCountsView = scope === 'all' ? moduleCounts : moduleCountsToday;
 
   const badges = computeBadges({ totalCorrect, maxStreak, moduleCounts });
   const earnedCount = badges.filter((b) => b.earned).length;

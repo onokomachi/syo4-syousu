@@ -20,6 +20,19 @@ export function fromMilli(milli: number): number {
   return Math.round(milli) / 1000;
 }
 
+/** 整数 n を 10^shift 倍した数の十進文字列（shift 負＝小数）。浮動小数を使わず誤差ゼロ。 */
+export function shiftPointString(n: number, shift: number): string {
+  const neg = n < 0;
+  let s = Math.abs(Math.round(n)).toString();
+  if (shift >= 0) return (neg ? '-' : '') + s + '0'.repeat(shift);
+  const k = -shift;
+  if (s.length <= k) s = '0'.repeat(k - s.length + 1) + s; // 先頭に 0 を補う
+  const cut = s.length - k;
+  const intPart = s.slice(0, cut);
+  const frac = s.slice(cut).replace(/0+$/, ''); // 末尾の 0 を落とす
+  return (neg ? '-' : '') + intPart + (frac ? '.' + frac : '');
+}
+
 /* ---------- 数をつくる（ディスク構成） ---------- */
 export type ComposeLevel = 'compose-2' | 'compose-3';
 
@@ -141,9 +154,10 @@ export function generateScale(level: ScaleLevel, forceOp?: ScaleOp): ScaleProble
   else if (level === 'scale-tenth') op = '÷10';
   else if (level === 'scale-100') op = Math.random() < 0.5 ? '×100' : '÷100';
   else op = (['×10', '÷10', '×100', '÷100'] as ScaleOp[])[rnd(0, 3)];
-  const factor = op === '×10' ? 10 : op === '÷10' ? 1 / 10 : op === '×100' ? 100 : 1 / 100;
-  const ansMilli = milli * factor;
-  return { value, op, answer: String(fromMilli(ansMilli)) };
+  // 答え = value × 10^k = (milli/1000) × 10^k = milli を 10^(k-3) 倍した数。
+  // ÷10・÷100 は 0.001 より小さい位（0.0105 等）になり得るので、整数の桁ずらしで誤差なく文字列化する。
+  const k = op === '×10' ? 1 : op === '÷10' ? -1 : op === '×100' ? 2 : -2;
+  return { value, op, answer: shiftPointString(milli, k - 3) };
 }
 
 /* ---------- 単位変換（長さ・重さ） ---------- */
