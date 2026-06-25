@@ -57,12 +57,13 @@
     --c-on-brand: #f7f0dc;
   }
   /* ダーク = マトリックス（電脳世界）テーマ：真っ黒 × 蛍光グリーン。
-     パネルは半透明にして背後のデジタルレインを透かす。 */
+     パネルは高不透明度にしてスマホでも背景が黒くなるようにする。
+     わずかに透過させてデジタルレインの雰囲気を残す。 */
   body[data-theme='dark'] {
     --c-bg: #000000;
-    --c-surface: rgba(5, 17, 8, 0.9);
-    --c-surface-2: rgba(2, 10, 4, 0.92);
-    --c-surface-3: rgba(11, 33, 16, 0.94);
+    --c-surface: rgba(3, 12, 5, 0.96);
+    --c-surface-2: rgba(1, 7, 2, 0.97);
+    --c-surface-3: rgba(7, 22, 10, 0.98);
     --c-content: #5dff7a;
     --c-muted: #2fd148;
     --c-faint: #1f9a32;
@@ -77,10 +78,15 @@
     background-color: var(--color-bg);
   }
 
+  /* スマホの FOUC・合成誤差対策: ダークテーマは背景を絶対に黒に固定する */
+  body[data-theme='dark'] {
+    background-color: #000000 !important;
+  }
+
   /* マトリックス世界観：ドットマトリックス・フォント＋文字のネオン発光 */
   body[data-theme='dark'] {
     font-family: "DotGothic16", "Share Tech Mono", "JetBrains Mono", ui-monospace, monospace;
-    text-shadow: 0 0 5px rgba(0, 255, 65, 0.5), 0 0 12px rgba(0, 255, 65, 0.25);
+    text-shadow: 0 0 4px rgba(0, 255, 65, 0.4), 0 0 10px rgba(0, 255, 65, 0.2);
     letter-spacing: 0.04em;
   }
 
@@ -112,7 +118,7 @@ body[data-theme='dark'] .bg-rose-50, body[data-theme='dark'] .bg-rose-100,
 body[data-theme='dark'] .bg-red-50, body[data-theme='dark'] .bg-pink-50,
 body[data-theme='dark'] .bg-slate-50, body[data-theme='dark'] .bg-slate-100,
 body[data-theme='dark'] .bg-slate-200 {
-  background-color: rgba(8, 26, 11, 0.6) !important;
+  background-color: rgba(4, 14, 6, 0.96) !important;
   border-color: rgba(0, 255, 65, 0.35);
 }
 
@@ -196,7 +202,8 @@ body[data-theme='dark'] .calc-cell {
   box-shadow: inset 0 0 8px rgba(0, 255, 65, 0.14);
 }
 
-/* 全画面の CRT 走査線オーバーレイ（薄く） */
+/* 全画面の CRT 走査線オーバーレイ（薄い黒線のみ。色は付けず暗さだけ）。
+   mix-blend-mode を使わず単純な rgba 黒線にすることでスマホ Safari の合成バグを回避する。 */
 body[data-theme='dark']::after {
   content: '';
   position: fixed;
@@ -207,8 +214,8 @@ body[data-theme='dark']::after {
     to bottom,
     rgba(0, 0, 0, 0) 0px,
     rgba(0, 0, 0, 0) 2px,
-    rgba(0, 255, 65, 0.04) 3px,
-    rgba(0, 255, 65, 0.04) 3px
+    rgba(0, 0, 0, 0.18) 3px,
+    rgba(0, 0, 0, 0.18) 4px
   );
 }
 

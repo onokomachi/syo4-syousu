@@ -71,7 +71,8 @@ export const MatrixRain: React.FC = () => {
     <canvas
       ref={canvasRef}
       aria-hidden
-      className="fixed inset-0 pointer-events-none z-0 opacity-30"
+      className="fixed inset-0 pointer-events-none z-0 opacity-40"
+      style={{ willChange: 'transform', transform: 'translateZ(0)' }}
     />
   );
 };
