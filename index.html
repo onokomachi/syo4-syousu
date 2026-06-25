@@ -4,6 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>小数ランド｜4年生のさんすう</title>
+    <!-- テーマの FOUC（白フラッシュ）防止: React が起動する前に localStorage からテーマを読んで
+         body[data-theme] を同期的にセットする。ダークは background を直接 #000 に固定して
+         CSS 変数が解決するまでの一瞬の白抜けをなくす。 -->
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('syousu_settings_v1');
+          var theme = (raw && JSON.parse(raw).state && JSON.parse(raw).state.theme) || 'light';
+          document.body.setAttribute('data-theme', theme);
+          if (theme === 'dark') document.body.style.backgroundColor = '#000000';
+          if (theme === 'cream') document.body.style.backgroundColor = '#e3d6b4';
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
