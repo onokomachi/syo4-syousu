@@ -41,8 +41,8 @@ export const MatrixRain: React.FC = () => {
       if (t - last < interval) return;
       last = t;
 
-      // 残像を残しつつ徐々に消す（黒の半透明で塗る）
-      ctx.fillStyle = 'rgba(0, 6, 0, 0.10)';
+      // 残像を残しつつ純黒へフェード（背景が灰色がからず真っ黒に保たれる）
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
@@ -50,8 +50,8 @@ export const MatrixRain: React.FC = () => {
         const ch = GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
         const x = i * fontSize;
         const y = drops[i] * fontSize;
-        // 先頭はやや明るく、それ以外は落ち着いた緑
-        ctx.fillStyle = Math.random() > 0.975 ? 'rgba(180,255,190,0.9)' : 'rgba(0,255,65,0.55)';
+        // 先頭の落下点だけ明るい緑、あとは落ち着いた緑（白は使わない）
+        ctx.fillStyle = Math.random() > 0.975 ? 'rgba(120, 255, 140, 0.85)' : 'rgba(0, 220, 60, 0.5)';
         ctx.fillText(ch, x, y);
         if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
         drops[i]++;
@@ -71,7 +71,7 @@ export const MatrixRain: React.FC = () => {
     <canvas
       ref={canvasRef}
       aria-hidden
-      className="fixed inset-0 pointer-events-none z-0 opacity-40"
+      className="fixed inset-0 pointer-events-none z-0 opacity-30"
     />
   );
 };

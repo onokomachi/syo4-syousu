@@ -56,12 +56,27 @@ export interface SkillMastery {
   perfectStreak?: number; // 連続ノーミス数（熟達バー表示用。ミスで0にリセット）
 }
 
+/** skillId のプレフィックスから所属モジュールを判定（累計カウンタの移行用） */
+function skillToModuleId(skillId: string): ModuleId | null {
+  if (skillId === 'mock-test' || skillId.startsWith('mock-')) return 'mock-test';
+  if (skillId.startsWith('addsub-')) return 'decimal-addsub';
+  if (skillId.startsWith('mul-') || skillId.startsWith('div-') || skillId.startsWith('muldiv-')) return 'decimal-muldiv';
+  if (skillId.startsWith('compare-') || skillId.startsWith('line-') || skillId.startsWith('lineread-') || skillId.startsWith('order-')) return 'number-line';
+  if (skillId.startsWith('compose-') || skillId.startsWith('collect-') || skillId.startsWith('scale-') || skillId.startsWith('unit-') || skillId.startsWith('placeid-') || skillId.startsWith('decompose-')) return 'place-value';
+  if (skillId.startsWith('wp-') || skillId.startsWith('word-')) return 'word-problem';
+  if (skillId.startsWith('judge-') || skillId.startsWith('fix-') || skillId.startsWith('eh-') || skillId.startsWith('error-')) return 'error-hunter';
+  return null;
+}
+
 interface ProgressState {
   logs: ResultRecord[];
   mastery: Record<string, SkillMastery>;
   currentStreak: number;
   maxStreak: number;
   dailyGoal: number;
+  // 累計カウンタ（logs は直近200件で打ち切るため、総数はこちらで保持して頭打ちを防ぐ）
+  totalCorrect: number;
+  moduleCounts: Partial<Record<ModuleId, number>>;
   recordResult: (rec: Omit<ResultRecord, 'id' | 'ts'>) => void;
   getMastery: (skillId: string) => number; // 0..1（試行なしは 0）
   getMasteryStreak: (skillId: string) => number; // 0..1（連続ノーミス/5。熟達バー表示用）
@@ -80,6 +95,8 @@ export const useProgressStore = create<ProgressState>()(
       currentStreak: 0,
       maxStreak: 0,
       dailyGoal: 10,
+      totalCorrect: 0,
+      moduleCounts: {},
 
       recordResult: (rec) => {
         set((state) => {
@@ -104,7 +121,13 @@ export const useProgressStore = create<ProgressState>()(
           const currentStreak = rec.correct ? state.currentStreak + 1 : 0;
           const maxStreak = Math.max(state.maxStreak, currentStreak);
 
-          return { logs, mastery, currentStreak, maxStreak };
+          // 累計カウンタ（頭打ち防止。logs のキャップに依存しない）
+          const totalCorrect = state.totalCorrect + (rec.correct ? 1 : 0);
+          const moduleCounts = rec.correct
+            ? { ...state.moduleCounts, [rec.moduleId]: (state.moduleCounts[rec.moduleId] ?? 0) + 1 }
+            : state.moduleCounts;
+
+          return { logs, mastery, currentStreak, maxStreak, totalCorrect, moduleCounts };
         });
       },
 
@@ -119,8 +142,7 @@ export const useProgressStore = create<ProgressState>()(
         return Math.min((m?.perfectStreak ?? 0) / 5, 1);
       },
 
-      getModuleCount: (moduleId) =>
-        get().logs.filter((l) => l.moduleId === moduleId && l.correct).length,
+      getModuleCount: (moduleId) => get().moduleCounts[moduleId] ?? 0,
 
       getTodayCount: () => {
         const start = new Date();
@@ -138,11 +160,30 @@ export const useProgressStore = create<ProgressState>()(
 
       setDailyGoal: (n) => set({ dailyGoal: n }),
 
-      reset: () => set({ logs: [], mastery: {}, currentStreak: 0, maxStreak: 0 }),
+      reset: () => set({ logs: [], mastery: {}, currentStreak: 0, maxStreak: 0, totalCorrect: 0, moduleCounts: {} }),
     }),
     {
       name: 'syousu_progress_v1',
+      version: 1,
       storage: createJSONStorage(() => getProgressStorage()),
+      // v0→v1: 累計カウンタを mastery（打ち切られない corrects）から復元する。
+      migrate: (persisted, version) => {
+        const state = persisted as Partial<ProgressState> | undefined;
+        if (state && version < 1) {
+          const mastery = state.mastery ?? {};
+          let totalCorrect = 0;
+          const moduleCounts: Partial<Record<ModuleId, number>> = {};
+          for (const [skillId, m] of Object.entries(mastery)) {
+            const c = m?.corrects ?? 0;
+            totalCorrect += c;
+            const mod = skillToModuleId(skillId);
+            if (mod) moduleCounts[mod] = (moduleCounts[mod] ?? 0) + c;
+          }
+          state.totalCorrect = totalCorrect;
+          state.moduleCounts = moduleCounts;
+        }
+        return state as ProgressState;
+      },
     }
   )
 );
