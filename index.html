@@ -14,7 +14,8 @@
         try {
           var raw = localStorage.getItem('syousu_settings_v1');
           var theme = (raw && JSON.parse(raw).state && JSON.parse(raw).state.theme) || 'light';
-          var bg = theme === 'dark' ? '#000000' : theme === 'cream' ? '#e3d6b4' : '#eef2f7';
+          var BG = { light: '#eef2f7', cream: '#e3d6b4', dark: '#000000', deep: '#000814', aurora: '#020309', cosmos: '#000000' };
+          var bg = BG[theme] || '#eef2f7';
           window.__theme = theme;
           document.documentElement.style.backgroundColor = bg;
         } catch (e) {}
@@ -29,7 +30,8 @@
       (function () {
         try {
           var theme = window.__theme || 'light';
-          var bg = theme === 'dark' ? '#000000' : theme === 'cream' ? '#e3d6b4' : '#eef2f7';
+          var BG = { light: '#eef2f7', cream: '#e3d6b4', dark: '#000000', deep: '#000814', aurora: '#020309', cosmos: '#000000' };
+          var bg = BG[theme] || '#eef2f7';
           document.body.setAttribute('data-theme', theme);
           document.body.style.backgroundColor = bg;
         } catch (e) {}

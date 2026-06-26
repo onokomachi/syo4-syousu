@@ -20,6 +20,9 @@ import { MODULES } from './constants';
 import { useApplySettings } from './lib/useApplySettings';
 import { useSettingsStore } from './store/settingsStore';
 import { MatrixRain } from './components/ui/MatrixRain';
+import { DeepSeaRain } from './components/ui/DeepSeaRain';
+import { AuroraRain } from './components/ui/AuroraRain';
+import { CosmosRain } from './components/ui/CosmosRain';
 
 type View = { kind: 'HUB' } | { kind: 'LOG' } | { kind: 'TEST' } | { kind: 'MODULE'; id: ModuleId };
 
@@ -53,8 +56,11 @@ export default function App() {
 
   return (
     <div className="w-full h-screen overflow-hidden select-none bg-bg">
-      {/* マトリックス（ダークテーマ）専用のデジタルレイン背景 */}
+      {/* テーマ別の動く背景（各コンポーネントが自分のテーマ以外では何も描画しない） */}
       <MatrixRain />
+      <DeepSeaRain />
+      <AuroraRain />
+      <CosmosRain />
 
       <div className="relative z-10 w-full h-full">
       <AnimatePresence mode="wait">

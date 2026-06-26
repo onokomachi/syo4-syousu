@@ -4,8 +4,12 @@
  */
 import React from 'react';
 import { motion } from 'motion/react';
-import { X, Sun, Coffee, Terminal, Music, Music2 } from 'lucide-react';
+import { X, Sun, Flower2, Terminal, Waves, Sparkles, Stars, Lock, Music, Music2 } from 'lucide-react';
 import { useSettingsStore, Theme, FontScale } from '../store/settingsStore';
+import { useProgressStore } from '../store/progressStore';
+import { MODULES } from '../constants';
+import { badgeRatio } from '../lib/badges';
+import { THEME_UNLOCK, isThemeUnlocked } from '../lib/themeUnlock';
 
 interface Props {
   onClose: () => void;
@@ -13,8 +17,11 @@ interface Props {
 
 const THEMES: { id: Theme; label: string; icon: React.ReactNode; swatch: string }[] = [
   { id: 'light', label: 'ふつう', icon: <Sun size={22} />, swatch: 'bg-surface border-slate-300' },
-  { id: 'cream', label: 'クリーム', icon: <Coffee size={22} />, swatch: 'bg-[#f6efdc] border-amber-300' },
+  { id: 'cream', label: '和', icon: <Flower2 size={22} />, swatch: 'bg-[#f6efdc] border-amber-300' },
   { id: 'dark', label: 'マトリックス', icon: <Terminal size={22} />, swatch: 'bg-black border-green-500' },
+  { id: 'deep', label: '深海', icon: <Waves size={22} />, swatch: 'bg-[#00131f] border-cyan-400' },
+  { id: 'aurora', label: '極光', icon: <Sparkles size={22} />, swatch: 'bg-[#060c16] border-purple-400' },
+  { id: 'cosmos', label: '宇宙神', icon: <Stars size={22} />, swatch: 'bg-black border-amber-400' },
 ];
 
 const FONTS: { id: FontScale; label: string; sample: string }[] = [
@@ -26,13 +33,28 @@ const FONTS: { id: FontScale; label: string; sample: string }[] = [
 export const Settings: React.FC<Props> = ({ onClose }) => {
   const { theme, fontScale, soundEnabled, setTheme, setFontScale, toggleSound } = useSettingsStore();
 
+  // バッジ獲得率（特別テーマの解放判定に使う）
+  const totalCorrect = useProgressStore((s) => s.totalCorrect);
+  const maxStreak = useProgressStore((s) => s.maxStreak);
+  const moduleCountsAll = useProgressStore((s) => s.moduleCounts);
+  const bestTestOmote = useProgressStore((s) => s.bestTestOmote);
+  const bestTestUra = useProgressStore((s) => s.bestTestUra);
+  const bestTestTotal = useProgressStore((s) => s.bestTestTotal);
+  const masteredModulesAll = useProgressStore((s) => s.masteredModules);
+  const moduleCounts: Record<string, number> = {};
+  MODULES.forEach((m) => (moduleCounts[m.id] = moduleCountsAll[m.id] ?? 0));
+  const masteredModules: Record<string, boolean> = {};
+  MODULES.forEach((m) => (masteredModules[m.id] = !!masteredModulesAll[m.id]));
+  const ratio = badgeRatio({ totalCorrect, maxStreak, moduleCounts, bestTestOmote, bestTestUra, bestTestTotal, masteredModules });
+
   // 選択中ボタンの強調はテーマ追従（brand 色＋surface-3）にして、
   // ダーク（マトリックス）でも文字が暗くならず読みやすいようにする。
   const selCls = 'border-brand bg-surface-3';
   const unselCls = 'border-line hover:border-faint';
-  // ダークのときはオーバーレイを透明にして、背後の「真っ黒＋緑のデジタルレイン」を
-  // そのまま見せる（blur や暗幕でレインがにじまないようにする）。
-  const overlayCls = theme === 'dark' ? 'bg-black/20' : 'bg-slate-900/40 backdrop-blur-sm';
+  // 暗背景テーマのときはオーバーレイを透明にして、背後の動く背景をそのまま見せる
+  // （blur や暗幕で背景がにじまないようにする）。
+  const neonThemes: Theme[] = ['dark', 'deep', 'aurora', 'cosmos'];
+  const overlayCls = neonThemes.includes(theme) ? 'bg-black/20' : 'bg-slate-900/40 backdrop-blur-sm';
 
   return (
     <motion.div
@@ -66,21 +88,33 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
             はいけいの いろ
           </label>
           <div className="grid grid-cols-3 gap-3">
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setTheme(t.id)}
-                className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
-                  theme === t.id ? selCls : unselCls
-                }`}
-              >
-                <span className={`w-10 h-10 rounded-full border-2 ${t.swatch}`} />
-                <span className="flex items-center gap-1 text-sm font-bold text-content">
-                  {t.icon}
-                  {t.label}
-                </span>
-              </button>
-            ))}
+            {THEMES.map((t) => {
+              const unlocked = isThemeUnlocked(t.id, ratio);
+              const reqLabel = THEME_UNLOCK[t.id]?.label;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => unlocked && setTheme(t.id)}
+                  disabled={!unlocked}
+                  aria-label={unlocked ? t.label : `${t.label}（${reqLabel} で 解放）`}
+                  className={`relative p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
+                    theme === t.id ? selCls : unselCls
+                  } ${unlocked ? '' : 'opacity-50 cursor-not-allowed'}`}
+                >
+                  <span className={`w-10 h-10 rounded-full border-2 ${t.swatch}`} />
+                  <span className="flex items-center gap-1 text-sm font-bold text-content">
+                    {t.icon}
+                    {t.label}
+                  </span>
+                  {!unlocked && (
+                    <span className="absolute inset-0 rounded-2xl bg-black/45 flex flex-col items-center justify-center gap-1 text-white">
+                      <Lock size={18} />
+                      <span className="text-[10px] font-black leading-none">{reqLabel}</span>
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
 
