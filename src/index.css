@@ -6,7 +6,7 @@
  * Tailwind の色トークン(--color-*)はそれを参照する。
  * これにより bg-surface / text-content / border-line などが全テーマで自動追従する。
  */
-@theme {
+@theme inline {
   --font-sans: "BIZ UDPGothic", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
