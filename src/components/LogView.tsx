@@ -112,17 +112,18 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
             </div>
           </div>
 
-          {/* バッジ */}
+          {/* バッジ（横一列・横スクロールで全部たしかめられる） */}
           <div>
             <div className="flex items-center gap-2 px-2 mb-3">
               <AwardIcon size={16} className="text-amber-400" />
               <span className="text-faint text-xs font-black uppercase tracking-widest">ごほうびバッジ（{earnedCount}/{badges.length}）</span>
+              <span className="text-faint text-[10px] font-bold">← よこに スクロール →</span>
             </div>
-            <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+            <div className="flex gap-3 overflow-x-auto pb-3 px-1 snap-x snap-mandatory">
               {badges.map((b) => {
                 const Icon = ICONS[b.icon] ?? Star;
                 return (
-                  <div key={b.id} className={`rounded-2xl p-4 flex flex-col items-center text-center border ${b.earned ? 'bg-amber-50 border-amber-200' : 'bg-surface border-line opacity-60'}`}>
+                  <div key={b.id} className={`snap-start shrink-0 w-28 rounded-2xl p-4 flex flex-col items-center text-center border ${b.earned ? 'bg-amber-50 border-amber-200' : 'bg-surface border-line opacity-60'}`}>
                     <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${b.earned ? 'bg-amber-400 text-white' : 'bg-surface-3 text-faint'}`}>
                       {b.earned ? <Icon size={24} /> : <Lock size={20} />}
                     </div>
