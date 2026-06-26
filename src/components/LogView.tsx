@@ -6,7 +6,7 @@ import { motion } from 'motion/react';
 import {
   ChevronLeft, Calendar, CheckCircle2, History, Trophy, TrendingUp, Award as AwardIcon,
   Star, Sparkles, Award, Flame, Crown, Divide, PlusSquare, X, Ruler, LayoutGrid, Search, BookOpen, Lock,
-  ChevronDown, ClipboardCheck,
+  ChevronDown, ClipboardCheck, Medal, Zap, Target, Rocket, Gem,
 } from 'lucide-react';
 import { useProgressStore, ModuleId } from '../store/progressStore';
 import { MODULES } from '../constants';
@@ -16,6 +16,7 @@ interface Props { onBack: () => void; }
 
 const ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
   Star, Sparkles, Award, Trophy, Flame, Crown, Divide, PlusSquare, X, Ruler, LayoutGrid, Search, BookOpen,
+  Medal, Zap, Target, Rocket, Gem, ClipboardCheck,
 };
 
 export const LogView: React.FC<Props> = ({ onBack }) => {
@@ -24,6 +25,9 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   const currentStreak = useProgressStore((s) => s.currentStreak);
   const totalCorrect = useProgressStore((s) => s.totalCorrect);
   const moduleCountsAll = useProgressStore((s) => s.moduleCounts);
+  const bestTestOmote = useProgressStore((s) => s.bestTestOmote);
+  const bestTestUra = useProgressStore((s) => s.bestTestUra);
+  const bestTestTotal = useProgressStore((s) => s.bestTestTotal);
   const [scope, setScope] = React.useState<'all' | 'today'>('all');
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
@@ -41,7 +45,7 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   MODULES.forEach((m) => (moduleCountsToday[m.id] = logs.filter((l) => l.moduleId === m.id && l.correct && l.ts >= todayTs).length));
   const moduleCountsView = scope === 'all' ? moduleCounts : moduleCountsToday;
 
-  const badges = computeBadges({ totalCorrect, maxStreak, moduleCounts });
+  const badges = computeBadges({ totalCorrect, maxStreak, moduleCounts, bestTestOmote, bestTestUra, bestTestTotal });
   const earnedCount = badges.filter((b) => b.earned).length;
 
   const moduleTitle = (id: ModuleId) => MODULES.find((m) => m.id === id)?.title ?? (id === 'mock-test' ? 'テスト' : id);

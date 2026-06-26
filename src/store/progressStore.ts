@@ -77,6 +77,10 @@ interface ProgressState {
   // 累計カウンタ（logs は直近200件で打ち切るため、総数はこちらで保持して頭打ちを防ぐ）
   totalCorrect: number;
   moduleCounts: Partial<Record<ModuleId, number>>;
+  // 本番テストの自己ベスト得点（バッジ判定用。表/裏/両面それぞれの最高点）
+  bestTestOmote: number;
+  bestTestUra: number;
+  bestTestTotal: number;
   recordResult: (rec: Omit<ResultRecord, 'id' | 'ts'>) => void;
   getMastery: (skillId: string) => number; // 0..1（試行なしは 0）
   getMasteryStreak: (skillId: string) => number; // 0..1（連続ノーミス/5。熟達バー表示用）
@@ -97,6 +101,9 @@ export const useProgressStore = create<ProgressState>()(
       dailyGoal: 10,
       totalCorrect: 0,
       moduleCounts: {},
+      bestTestOmote: 0,
+      bestTestUra: 0,
+      bestTestTotal: 0,
 
       recordResult: (rec) => {
         set((state) => {
@@ -127,7 +134,18 @@ export const useProgressStore = create<ProgressState>()(
             ? { ...state.moduleCounts, [rec.moduleId]: (state.moduleCounts[rec.moduleId] ?? 0) + 1 }
             : state.moduleCounts;
 
-          return { logs, mastery, currentStreak, maxStreak, totalCorrect, moduleCounts };
+          // 本番テストの自己ベスト得点を更新（その範囲に含まれたセクションのみ）
+          let bestTestOmote = state.bestTestOmote;
+          let bestTestUra = state.bestTestUra;
+          let bestTestTotal = state.bestTestTotal;
+          if (rec.detail) {
+            if (rec.detail.omoteMax > 0) bestTestOmote = Math.max(bestTestOmote, rec.detail.omoteScore);
+            if (rec.detail.uraMax > 0) bestTestUra = Math.max(bestTestUra, rec.detail.uraScore);
+            // 両面（ぜんぶ）= 表と裏の両方を解いたときだけ合計のベストを更新
+            if (rec.detail.omoteMax > 0 && rec.detail.uraMax > 0) bestTestTotal = Math.max(bestTestTotal, rec.detail.total);
+          }
+
+          return { logs, mastery, currentStreak, maxStreak, totalCorrect, moduleCounts, bestTestOmote, bestTestUra, bestTestTotal };
         });
       },
 
@@ -160,13 +178,14 @@ export const useProgressStore = create<ProgressState>()(
 
       setDailyGoal: (n) => set({ dailyGoal: n }),
 
-      reset: () => set({ logs: [], mastery: {}, currentStreak: 0, maxStreak: 0, totalCorrect: 0, moduleCounts: {} }),
+      reset: () => set({ logs: [], mastery: {}, currentStreak: 0, maxStreak: 0, totalCorrect: 0, moduleCounts: {}, bestTestOmote: 0, bestTestUra: 0, bestTestTotal: 0 }),
     }),
     {
       name: 'syousu_progress_v1',
-      version: 1,
+      version: 2,
       storage: createJSONStorage(() => getProgressStorage()),
       // v0→v1: 累計カウンタを mastery（打ち切られない corrects）から復元する。
+      // v1→v2: 本番テストの自己ベスト得点を、残っている logs の detail から復元する。
       migrate: (persisted, version) => {
         const state = persisted as Partial<ProgressState> | undefined;
         if (state && version < 1) {
@@ -181,6 +200,21 @@ export const useProgressStore = create<ProgressState>()(
           }
           state.totalCorrect = totalCorrect;
           state.moduleCounts = moduleCounts;
+        }
+        if (state && version < 2) {
+          let bestTestOmote = 0;
+          let bestTestUra = 0;
+          let bestTestTotal = 0;
+          for (const l of state.logs ?? []) {
+            const d = l.detail;
+            if (!d) continue;
+            if (d.omoteMax > 0) bestTestOmote = Math.max(bestTestOmote, d.omoteScore);
+            if (d.uraMax > 0) bestTestUra = Math.max(bestTestUra, d.uraScore);
+            if (d.omoteMax > 0 && d.uraMax > 0) bestTestTotal = Math.max(bestTestTotal, d.total);
+          }
+          state.bestTestOmote = bestTestOmote;
+          state.bestTestUra = bestTestUra;
+          state.bestTestTotal = bestTestTotal;
         }
         return state as ProgressState;
       },
