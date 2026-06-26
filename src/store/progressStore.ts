@@ -81,6 +81,9 @@ interface ProgressState {
   bestTestOmote: number;
   bestTestUra: number;
   bestTestTotal: number;
+  // 習熟度MAX（あるレベルで5問連続ノーミス＝熟達バー満タン）を一度でも達成したモジュール。
+  // perfectStreak はミスで0に戻るが、この記録は永続（バッジ用なので消えない）。
+  masteredModules: Partial<Record<ModuleId, boolean>>;
   recordResult: (rec: Omit<ResultRecord, 'id' | 'ts'>) => void;
   getMastery: (skillId: string) => number; // 0..1（試行なしは 0）
   getMasteryStreak: (skillId: string) => number; // 0..1（連続ノーミス/5。熟達バー表示用）
@@ -104,6 +107,7 @@ export const useProgressStore = create<ProgressState>()(
       bestTestOmote: 0,
       bestTestUra: 0,
       bestTestTotal: 0,
+      masteredModules: {},
 
       recordResult: (rec) => {
         set((state) => {
@@ -115,15 +119,21 @@ export const useProgressStore = create<ProgressState>()(
           const logs = [entry, ...state.logs].slice(0, 200);
 
           const prev = state.mastery[rec.skillId] ?? { attempts: 0, corrects: 0, perfectStreak: 0 };
+          const newPerfectStreak = rec.correct ? Math.min((prev.perfectStreak ?? 0) + 1, 5) : 0;
           const mastery = {
             ...state.mastery,
             [rec.skillId]: {
               attempts: prev.attempts + 1,
               corrects: prev.corrects + (rec.correct ? 1 : 0),
               // 連続ノーミス：正解で +1（最大5）、ミスありの完答で 0 にリセット
-              perfectStreak: rec.correct ? Math.min((prev.perfectStreak ?? 0) + 1, 5) : 0,
+              perfectStreak: newPerfectStreak,
             },
           };
+
+          // 熟達バーが満タン（5連続ノーミス）に達したら、そのモジュールを「習熟度MAX」として永続記録
+          const masteredModules = newPerfectStreak >= 5 && !state.masteredModules[rec.moduleId]
+            ? { ...state.masteredModules, [rec.moduleId]: true }
+            : state.masteredModules;
 
           const currentStreak = rec.correct ? state.currentStreak + 1 : 0;
           const maxStreak = Math.max(state.maxStreak, currentStreak);
@@ -145,7 +155,7 @@ export const useProgressStore = create<ProgressState>()(
             if (rec.detail.omoteMax > 0 && rec.detail.uraMax > 0) bestTestTotal = Math.max(bestTestTotal, rec.detail.total);
           }
 
-          return { logs, mastery, currentStreak, maxStreak, totalCorrect, moduleCounts, bestTestOmote, bestTestUra, bestTestTotal };
+          return { logs, mastery, currentStreak, maxStreak, totalCorrect, moduleCounts, bestTestOmote, bestTestUra, bestTestTotal, masteredModules };
         });
       },
 
@@ -178,11 +188,11 @@ export const useProgressStore = create<ProgressState>()(
 
       setDailyGoal: (n) => set({ dailyGoal: n }),
 
-      reset: () => set({ logs: [], mastery: {}, currentStreak: 0, maxStreak: 0, totalCorrect: 0, moduleCounts: {}, bestTestOmote: 0, bestTestUra: 0, bestTestTotal: 0 }),
+      reset: () => set({ logs: [], mastery: {}, currentStreak: 0, maxStreak: 0, totalCorrect: 0, moduleCounts: {}, bestTestOmote: 0, bestTestUra: 0, bestTestTotal: 0, masteredModules: {} }),
     }),
     {
       name: 'syousu_progress_v1',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => getProgressStorage()),
       // v0→v1: 累計カウンタを mastery（打ち切られない corrects）から復元する。
       // v1→v2: 本番テストの自己ベスト得点を、残っている logs の detail から復元する。
@@ -215,6 +225,17 @@ export const useProgressStore = create<ProgressState>()(
           state.bestTestOmote = bestTestOmote;
           state.bestTestUra = bestTestUra;
           state.bestTestTotal = bestTestTotal;
+        }
+        if (state && version < 3) {
+          // 既存ユーザー: 現在の mastery で perfectStreak が満タンのスキルから習熟度MAXを復元
+          const masteredModules: Partial<Record<ModuleId, boolean>> = {};
+          for (const [skillId, m] of Object.entries(state.mastery ?? {})) {
+            if ((m?.perfectStreak ?? 0) >= 5) {
+              const mod = skillToModuleId(skillId);
+              if (mod) masteredModules[mod] = true;
+            }
+          }
+          state.masteredModules = masteredModules;
         }
         return state as ProgressState;
       },

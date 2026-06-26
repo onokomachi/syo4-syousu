@@ -26,20 +26,28 @@ const FONTS: { id: FontScale; label: string; sample: string }[] = [
 export const Settings: React.FC<Props> = ({ onClose }) => {
   const { theme, fontScale, soundEnabled, setTheme, setFontScale, toggleSound } = useSettingsStore();
 
+  // 選択中ボタンの強調はテーマ追従（brand 色＋surface-3）にして、
+  // ダーク（マトリックス）でも文字が暗くならず読みやすいようにする。
+  const selCls = 'border-brand bg-surface-3';
+  const unselCls = 'border-line hover:border-faint';
+  // ダークのときはオーバーレイを透明にして、背後の「真っ黒＋緑のデジタルレイン」を
+  // そのまま見せる（blur や暗幕でレインがにじまないようにする）。
+  const overlayCls = theme === 'dark' ? 'bg-black/20' : 'bg-slate-900/40 backdrop-blur-sm';
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 z-[200] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-6"
+      className={`fixed inset-0 z-[200] ${overlayCls} flex items-center justify-center p-6`}
     >
       <motion.div
         initial={{ scale: 0.95, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.95, y: 20 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-surface rounded-[32px] p-8 max-w-lg w-full shadow-2xl"
+        className="bg-surface border border-line rounded-[32px] p-8 max-w-lg w-full shadow-2xl"
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-black text-content">ひょうじの せってい</h2>
@@ -63,7 +71,7 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
                 key={t.id}
                 onClick={() => setTheme(t.id)}
                 className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all ${
-                  theme === t.id ? 'border-blue-500 bg-blue-50' : 'border-line hover:border-line'
+                  theme === t.id ? selCls : unselCls
                 }`}
               >
                 <span className={`w-10 h-10 rounded-full border-2 ${t.swatch}`} />
@@ -87,7 +95,7 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
                 key={f.id}
                 onClick={() => setFontScale(f.id)}
                 className={`p-4 rounded-2xl border-2 transition-all ${
-                  fontScale === f.id ? 'border-blue-500 bg-blue-50' : 'border-line hover:border-line'
+                  fontScale === f.id ? selCls : unselCls
                 }`}
               >
                 <span className={`block font-black text-content ${f.sample}`}>あ</span>
@@ -100,7 +108,7 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
         {/* 効果音 */}
         <div className="flex items-center justify-between p-5 bg-surface-2 rounded-2xl border border-line">
           <div className="flex items-center gap-3">
-            {soundEnabled ? <Music className="text-blue-500" /> : <Music2 className="text-faint" />}
+            {soundEnabled ? <Music className="text-brand" /> : <Music2 className="text-faint" />}
             <div>
               <div className="font-bold text-content">こうかおん</div>
               <div className="text-sm text-muted">せいかいや クリアの 音をならします。</div>
@@ -109,11 +117,15 @@ export const Settings: React.FC<Props> = ({ onClose }) => {
           <button
             onClick={toggleSound}
             className={`w-14 h-8 rounded-full transition-colors relative flex items-center px-1 ${
-              soundEnabled ? 'bg-blue-500' : 'bg-slate-300'
+              soundEnabled ? 'bg-brand' : 'bg-surface-3'
             }`}
             aria-label="こうかおんの オン・オフ"
           >
-            <motion.div animate={{ x: soundEnabled ? 24 : 0 }} className="w-6 h-6 bg-surface rounded-full shadow-sm" />
+            <motion.div
+              animate={{ x: soundEnabled ? 24 : 0 }}
+              className="w-6 h-6 rounded-full shadow-sm"
+              style={{ backgroundColor: '#f8fafc' }}
+            />
           </button>
         </div>
       </motion.div>

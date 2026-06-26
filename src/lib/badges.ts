@@ -12,6 +12,8 @@ export interface BadgeData {
   bestTestOmote?: number;
   bestTestUra?: number;
   bestTestTotal?: number;
+  // 習熟度MAX（5連続ノーミス）を達成したモジュール
+  masteredModules?: Record<string, boolean>;
 }
 
 export interface Badge {
@@ -61,6 +63,16 @@ export function computeBadges(d: BadgeData): Badge[] {
       desc: 'はじめて クリア',
       icon: m.icon,
       earned: (d.moduleCounts[m.id] || 0) >= 1,
+    })
+  );
+  // 各モジュールの「習熟度MAX」バッジ（あるレベルで5問連続ノーミス＝熟達バー満タン）
+  MODULES.forEach((m) =>
+    list.push({
+      id: `mx-${m.id}`,
+      title: `${m.title} マスター`,
+      desc: '習熟度MAX たっせい',
+      icon: 'Crown',
+      earned: !!(d.masteredModules && d.masteredModules[m.id]),
     })
   );
   return list;
