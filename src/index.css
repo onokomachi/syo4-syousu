@@ -57,13 +57,13 @@
     --c-on-brand: #f7f0dc;
   }
   /* ダーク = マトリックス（電脳世界）テーマ：真っ黒 × 蛍光グリーン。
-     パネルは高不透明度にしてスマホでも背景が黒くなるようにする。
-     わずかに透過させてデジタルレインの雰囲気を残す。 */
+     パネルは完全不透明にしてスマホでも背景が確実に黒くなるようにする
+     （半透明だと下のレイヤーの色がにじんで白っぽく見えるため）。 */
   body[data-theme='dark'] {
     --c-bg: #000000;
-    --c-surface: rgba(3, 12, 5, 0.96);
-    --c-surface-2: rgba(1, 7, 2, 0.97);
-    --c-surface-3: rgba(7, 22, 10, 0.98);
+    --c-surface: #050d07;
+    --c-surface-2: #020803;
+    --c-surface-3: #08160b;
     --c-content: #5dff7a;
     --c-muted: #2fd148;
     --c-faint: #1f9a32;
@@ -118,7 +118,7 @@ body[data-theme='dark'] .bg-rose-50, body[data-theme='dark'] .bg-rose-100,
 body[data-theme='dark'] .bg-red-50, body[data-theme='dark'] .bg-pink-50,
 body[data-theme='dark'] .bg-slate-50, body[data-theme='dark'] .bg-slate-100,
 body[data-theme='dark'] .bg-slate-200 {
-  background-color: rgba(4, 14, 6, 0.96) !important;
+  background-color: #050f07 !important;
   border-color: rgba(0, 255, 65, 0.35);
 }
 
