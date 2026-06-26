@@ -6,7 +6,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type Theme = 'light' | 'cream' | 'dark';
+export type Theme = 'light' | 'cream' | 'dark' | 'deep' | 'aurora' | 'cosmos';
 export type FontScale = 'normal' | 'large' | 'xlarge';
 
 interface SettingsState {

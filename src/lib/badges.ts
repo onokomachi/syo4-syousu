@@ -86,3 +86,10 @@ export function computeBadges(d: BadgeData): Badge[] {
   });
   return list;
 }
+
+/** 獲得バッジの割合（0..1）。テーマ解放の判定に使う。 */
+export function badgeRatio(d: BadgeData): number {
+  const list = computeBadges(d);
+  if (list.length === 0) return 0;
+  return list.filter((b) => b.earned).length / list.length;
+}
