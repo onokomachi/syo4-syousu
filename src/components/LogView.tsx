@@ -28,6 +28,7 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   const bestTestOmote = useProgressStore((s) => s.bestTestOmote);
   const bestTestUra = useProgressStore((s) => s.bestTestUra);
   const bestTestTotal = useProgressStore((s) => s.bestTestTotal);
+  const masteredModulesAll = useProgressStore((s) => s.masteredModules);
   const [scope, setScope] = React.useState<'all' | 'today'>('all');
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
 
@@ -45,7 +46,9 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
   MODULES.forEach((m) => (moduleCountsToday[m.id] = logs.filter((l) => l.moduleId === m.id && l.correct && l.ts >= todayTs).length));
   const moduleCountsView = scope === 'all' ? moduleCounts : moduleCountsToday;
 
-  const badges = computeBadges({ totalCorrect, maxStreak, moduleCounts, bestTestOmote, bestTestUra, bestTestTotal });
+  const masteredModules: Record<string, boolean> = {};
+  MODULES.forEach((m) => (masteredModules[m.id] = !!masteredModulesAll[m.id]));
+  const badges = computeBadges({ totalCorrect, maxStreak, moduleCounts, bestTestOmote, bestTestUra, bestTestTotal, masteredModules });
   const earnedCount = badges.filter((b) => b.earned).length;
 
   const moduleTitle = (id: ModuleId) => MODULES.find((m) => m.id === id)?.title ?? (id === 'mock-test' ? 'テスト' : id);
