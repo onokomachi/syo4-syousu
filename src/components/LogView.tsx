@@ -122,12 +122,22 @@ export const LogView: React.FC<Props> = ({ onBack }) => {
             <div className="flex gap-3 overflow-x-auto pb-3 px-1 snap-x snap-mandatory">
               {badges.map((b) => {
                 const Icon = ICONS[b.icon] ?? Star;
+                const isGod = b.id === 'god';
+                // 「神」は最上位称号なので獲得時は金のグラデで特別に強調
+                const cardCls = b.earned
+                  ? isGod
+                    ? 'bg-gradient-to-br from-amber-200 to-yellow-400 border-amber-500 ring-2 ring-amber-300'
+                    : 'bg-amber-50 border-amber-200'
+                  : 'bg-surface border-line opacity-60';
+                const iconCls = b.earned
+                  ? isGod ? 'bg-amber-500 text-white' : 'bg-amber-400 text-white'
+                  : 'bg-surface-3 text-faint';
                 return (
-                  <div key={b.id} className={`snap-start shrink-0 w-28 rounded-2xl p-4 flex flex-col items-center text-center border ${b.earned ? 'bg-amber-50 border-amber-200' : 'bg-surface border-line opacity-60'}`}>
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${b.earned ? 'bg-amber-400 text-white' : 'bg-surface-3 text-faint'}`}>
+                  <div key={b.id} className={`snap-start shrink-0 w-28 rounded-2xl p-4 flex flex-col items-center text-center border ${cardCls}`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${iconCls}`}>
                       {b.earned ? <Icon size={24} /> : <Lock size={20} />}
                     </div>
-                    <div className={`text-xs font-black ${b.earned ? 'text-amber-700' : 'text-faint'}`}>{b.title}</div>
+                    <div className={`text-xs font-black ${b.earned ? (isGod ? 'text-amber-900' : 'text-amber-700') : 'text-faint'}`}>{b.title}</div>
                     <div className="text-[10px] text-faint font-bold mt-0.5">{b.desc}</div>
                   </div>
                 );
