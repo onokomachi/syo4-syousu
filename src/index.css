@@ -202,22 +202,8 @@ body[data-theme='dark'] .calc-cell {
   box-shadow: inset 0 0 8px rgba(0, 255, 65, 0.14);
 }
 
-/* 全画面の CRT 走査線オーバーレイ（薄い黒線のみ。色は付けず暗さだけ）。
-   mix-blend-mode を使わず単純な rgba 黒線にすることでスマホ Safari の合成バグを回避する。 */
-body[data-theme='dark']::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 100;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0) 0px,
-    rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.18) 3px,
-    rgba(0, 0, 0, 0.18) 4px
-  );
-}
+/* CRT 走査線オーバーレイは廃止（横方向の筋に見えるため）。
+   背景は「純黒 ＋ 緑のデジタルレイン」だけにして、余計な縞を一切重ねない。 */
 
 /* =====================================================================
  * 和紙×墨絵テーマ（cream）の一括上書き（@layer 外＝ユーティリティに勝つ）。
