@@ -83,14 +83,26 @@ function fmt(v: number, decimals: number) {
   return v.toFixed(decimals).replace(/\.0$/, decimals === 1 ? '.0' : '');
 }
 
-export function generateLine(level: LineLevel): LineProblem {
+export function generateLine(level: LineLevel, mode: 'place' | 'read' = 'place'): LineProblem {
   if (level === 'line-tenths') {
     const k = rnd(1, 9);
     const target = k / 10;
     return { target, targetStr: `0.${k}`, min: 0, max: 1, step: 0.1, majorEvery: 5 };
   }
   if (level === 'line-hundredths') {
-    // 小数第2位（例 3.54）。答えに必要な 0.1 区間だけ 0.01 刻みで拡大表示。
+    if (mode === 'read') {
+      // テスト準拠（例: 3.8〜4.1）。幅0.3 を 0.1ごとに数字・0.01ごとに目もりで表示し、
+      // 0.1 の節ではない点（例 3.82 や 4.07）を読み取らせる。整数をまたぐこともある。
+      const whole = rnd(1, 5);
+      const startTenth = rnd(0, 9); // min の小数第一位（max=+0.3 で整数をまたぐこともある）
+      const min = Math.round((whole + startTenth / 10) * 100) / 100;
+      const max = Math.round((min + 0.3) * 100) / 100;
+      const seg = rnd(0, 2);   // どの 0.1 区間か（0〜2）
+      const hund = rnd(1, 9);  // その区間内の 0.01 目もり（節を避ける）
+      const target = Math.round((min + seg * 0.1 + hund / 100) * 100) / 100;
+      return { target, targetStr: target.toFixed(2), min, max, step: 0.01, majorEvery: 10 };
+    }
+    // place（おく）: タップ点が密集しないよう、答えに必要な 0.1 区間だけ 0.01 刻みで拡大表示。
     const whole = rnd(1, 6);
     const tenth = rnd(0, 9);
     let hund = rnd(1, 9); // 末尾0でない＝第2位まで意味がある

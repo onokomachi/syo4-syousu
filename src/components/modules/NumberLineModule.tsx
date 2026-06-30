@@ -47,7 +47,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
 
   const startCompare = (lv: CompareLevel) => { setActivity('compare'); setMode('fixed'); setCompareLevel(lv); setPair(generateCompare(lv)); setPhase('SIM'); };
   const startLine = (lv: LineLevel) => { setActivity('line'); setMode('fixed'); setLineLevel(lv); setLineProblem(generateLine(lv)); setPhase('SIM'); };
-  const startRead = (lv: LineLevel) => { setActivity('line-read'); setMode('fixed'); setReadLevel(lv); setReadProblem(generateLine(lv)); setPhase('SIM'); };
+  const startRead = (lv: LineLevel) => { setActivity('line-read'); setMode('fixed'); setReadLevel(lv); setReadProblem(generateLine(lv, 'read')); setPhase('SIM'); };
   const startOrder = (lv: OrderLevel) => { setActivity('order'); setMode('fixed'); setOrderLevel(lv); setOrderProblem(generateOrder(lv)); setPhase('SIM'); };
   const startCompareAdaptive = () => { setActivity('compare'); setMode('adaptive'); setPair(generateCompare(compareAdaptive.level)); setPhase('SIM'); };
   const startLineAdaptive = () => { setActivity('line'); setMode('adaptive'); setLineProblem(generateLine(lineAdaptive.level)); setPhase('SIM'); };
@@ -160,7 +160,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
             <LineActivity key={lineProblem.targetStr + lineProblem.max} problem={lineProblem} level={effLineLevel} onNext={() => setLineProblem(generateLine(effLineLevel))} onResult={mode === 'adaptive' ? lineAdaptive.onResult : undefined} />
           )}
           {activity === 'line-read' && readProblem && (
-            <LineReadActivity key={readProblem.targetStr + readProblem.max} problem={readProblem} level={readLevel} onNext={() => setReadProblem(generateLine(readLevel))} />
+            <LineReadActivity key={readProblem.targetStr + readProblem.max} problem={readProblem} level={readLevel} onNext={() => setReadProblem(generateLine(readLevel, 'read'))} />
           )}
           {activity === 'order' && orderProblem && (
             <OrderActivity key={orderProblem.items.join()} problem={orderProblem} level={orderLevel} onNext={() => setOrderProblem(generateOrder(orderLevel))} />
