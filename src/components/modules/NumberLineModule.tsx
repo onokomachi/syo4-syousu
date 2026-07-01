@@ -14,17 +14,18 @@ import {
   COMPARE_LEVELS, CompareLevel, ComparePair, generateCompare, relation,
   LINE_LEVELS, LineLevel, LineProblem, generateLine, lineTicks,
   ORDER_LEVELS, OrderLevel, OrderProblem, generateOrder,
+  ComposeLineProblem, generateComposeLine,
 } from '../../lib/numberLine';
 import { useProgressStore } from '../../store/progressStore';
 import { LevelCard } from '../ui/primitives';
-import { Eye, ArrowDownUp, X } from 'lucide-react';
+import { Eye, ArrowDownUp, X, Calculator } from 'lucide-react';
 import { playClear, playSoftTry, playCorrect } from '../../lib/sound';
 import { useAdaptive } from '../../lib/useAdaptive';
 import { AdaptiveBar } from '../shared/AdaptiveBar';
 import { Wand2 } from 'lucide-react';
 
 interface Props { onExit: () => void; }
-type Activity = 'compare' | 'line' | 'line-read' | 'order';
+type Activity = 'compare' | 'line' | 'line-read' | 'order' | 'compose-line';
 
 export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const [phase, setPhase] = useState<'SETUP' | 'SIM'>('SETUP');
@@ -38,6 +39,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const [lineProblem, setLineProblem] = useState<LineProblem | null>(null);
   const [readProblem, setReadProblem] = useState<LineProblem | null>(null);
   const [orderProblem, setOrderProblem] = useState<OrderProblem | null>(null);
+  const [composeProblem, setComposeProblem] = useState<ComposeLineProblem | null>(null);
   const compareAdaptive = useAdaptive(COMPARE_LEVELS.map((l) => l.id), 'compare');
   const lineAdaptive = useAdaptive(LINE_LEVELS.map((l) => l.id), 'line');
   const effCompareLevel = mode === 'adaptive' ? compareAdaptive.level : compareLevel;
@@ -49,6 +51,7 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const startLine = (lv: LineLevel) => { setActivity('line'); setMode('fixed'); setLineLevel(lv); setLineProblem(generateLine(lv)); setPhase('SIM'); };
   const startRead = (lv: LineLevel) => { setActivity('line-read'); setMode('fixed'); setReadLevel(lv); setReadProblem(generateLine(lv, 'read')); setPhase('SIM'); };
   const startOrder = (lv: OrderLevel) => { setActivity('order'); setMode('fixed'); setOrderLevel(lv); setOrderProblem(generateOrder(lv)); setPhase('SIM'); };
+  const startCompose = () => { setActivity('compose-line'); setMode('fixed'); setComposeProblem(generateComposeLine()); setPhase('SIM'); };
   const startCompareAdaptive = () => { setActivity('compare'); setMode('adaptive'); setPair(generateCompare(compareAdaptive.level)); setPhase('SIM'); };
   const startLineAdaptive = () => { setActivity('line'); setMode('adaptive'); setLineProblem(generateLine(lineAdaptive.level)); setPhase('SIM'); };
 
@@ -119,6 +122,20 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
           </div>
 
           <div className="mt-6">
+            <div className="flex items-center gap-2 mb-3 text-amber-600"><Calculator size={20} /><span className="font-black">ことばから 数直線（↑を おく）</span></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <LevelCard
+                label="ことばから 数直線"
+                desc="ことばの 数を もとめて ↑を おこう"
+                mastery={getMasteryStreak('line-compose')}
+                todayCount={getTodaySkillCount('line-compose')}
+                onClick={startCompose}
+                accentBorder="hover:border-amber-400"
+              />
+            </div>
+          </div>
+
+          <div className="mt-6">
             <div className="flex items-center gap-2 mb-3 text-amber-600"><ArrowDownUp size={20} /><span className="font-black">ならべかえ（大小の順）</span></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {ORDER_LEVELS.map((lv) => (
@@ -143,8 +160,9 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
   const subtitle = mode === 'adaptive' ? 'おまかせ'
     : activity === 'compare' ? COMPARE_LEVELS.find((l) => l.id === compareLevel)?.label
       : activity === 'line-read' ? `よむ・${LINE_LEVELS.find((l) => l.id === readLevel)?.label ?? ''}`
-        : activity === 'order' ? ORDER_LEVELS.find((l) => l.id === orderLevel)?.label
-          : LINE_LEVELS.find((l) => l.id === lineLevel)?.label;
+        : activity === 'compose-line' ? 'ことばから 数直線'
+          : activity === 'order' ? ORDER_LEVELS.find((l) => l.id === orderLevel)?.label
+            : LINE_LEVELS.find((l) => l.id === lineLevel)?.label;
 
   return (
     <AppShell title="数直線・大小くらべ" subtitle={subtitle} onBack={() => setPhase('SETUP')}>
@@ -165,6 +183,9 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
           {activity === 'order' && orderProblem && (
             <OrderActivity key={orderProblem.items.join()} problem={orderProblem} level={orderLevel} onNext={() => setOrderProblem(generateOrder(orderLevel))} />
           )}
+          {activity === 'compose-line' && composeProblem && (
+            <ComposeLineActivity key={composeProblem.prompt} problem={composeProblem} onNext={() => setComposeProblem(generateComposeLine())} />
+          )}
         </div>
       </div>
     </AppShell>
@@ -176,6 +197,8 @@ export const NumberLineModule: React.FC<Props> = ({ onExit }) => {
 interface Mark { value: number; label: string; color: string; }
 interface NumberLineProps {
   min: number; max: number; step: number; majorEvery: number;
+  midEvery?: number;   // 中くらいの目盛り（例: 0.1ごと）。未指定なら無し
+  labelEvery?: number; // 数字ラベルを出す間隔。未指定なら majorEvery と同じ
   marks?: Mark[];
   interactive?: boolean;
   onPick?: (v: number) => void;
@@ -183,10 +206,12 @@ interface NumberLineProps {
   correctValue?: number | null; // 採点後に正解を強調
 }
 
-const NumberLine: React.FC<NumberLineProps> = ({ min, max, step, majorEvery, marks = [], interactive, onPick, pickedValue, correctValue }) => {
+const NumberLine: React.FC<NumberLineProps> = ({ min, max, step, majorEvery, midEvery, labelEvery, marks = [], interactive, onPick, pickedValue, correctValue }) => {
   const ticks = useMemo(() => lineTicks(min, max, step), [min, max, step]);
   const pct = (v: number) => ((v - min) / (max - min)) * 100;
   const isMajor = (i: number) => i % majorEvery === 0;
+  const isMid = (i: number) => midEvery != null && i % midEvery === 0;
+  const showLabel = (i: number) => i % (labelEvery ?? majorEvery) === 0;
 
   return (
     <div className="relative w-full" style={{ height: 150 }}>
@@ -207,7 +232,7 @@ const NumberLine: React.FC<NumberLineProps> = ({ min, max, step, majorEvery, mar
         const correct = correctValue != null && Math.abs(correctValue - t) < 1e-9;
         return (
           <div key={i} className="absolute -translate-x-1/2 flex flex-col items-center" style={{ left: `${pct(t)}%`, top: 70 }}>
-            <div className={`${isMajor(i) ? 'h-5 w-1' : 'h-3 w-0.5'} ${correct ? 'bg-emerald-500' : 'bg-slate-500'}`} />
+            <div className={`${isMajor(i) ? 'h-5 w-1' : isMid(i) ? 'h-4 w-0.5' : 'h-3 w-0.5'} ${correct ? 'bg-emerald-500' : 'bg-slate-500'}`} />
             {interactive && (
               <button
                 onClick={() => onPick?.(t)}
@@ -219,7 +244,7 @@ const NumberLine: React.FC<NumberLineProps> = ({ min, max, step, majorEvery, mar
                 style={{ width: 26, height: 26 }}
               />
             )}
-            {isMajor(i) && (
+            {showLabel(i) && (
               <span className={`mt-1 text-sm font-black ${t === (min + max) / 2 ? 'text-amber-600' : 'text-muted'}`}>{Number(t.toFixed(1))}</span>
             )}
           </div>
@@ -457,6 +482,74 @@ export const LineReadActivity: React.FC<{ problem: LineProblem; level: LineLevel
             <div className="text-center mt-4">
               <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl">
                 せいかい！ ◆は {targetStr} だね。
+              </div>
+              <div>
+                <button onClick={onNext} className="mt-6 px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ===================== ことばから 数直線（↑をおく） ===================== */
+
+export const ComposeLineActivity: React.FC<{ problem: ComposeLineProblem; onNext: () => void }> = ({ problem, onNext }) => {
+  const { prompt, target, targetStr, min, max, step, majorEvery, midEvery, labelEvery } = problem;
+  const [solved, setSolved] = useState(false);
+  const [mistakes, setMistakes] = useState(0);
+  const [hint, setHint] = useState<string | null>(null);
+  const recordResult = useProgressStore((s) => s.recordResult);
+
+  const submit = (v: string) => {
+    if (solved) return;
+    if (Math.abs(Number(v) - target) < 1e-9) {
+      setSolved(true);
+      playClear();
+      confetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+      recordResult({ moduleId: 'number-line', skillId: 'line-compose', label: prompt, correct: mistakes === 0 });
+    } else {
+      playSoftTry();
+      setMistakes((m) => m + 1);
+      setHint('1のくらい・0.1のくらい・0.01のくらいに 分けて 考えよう。');
+    }
+  };
+
+  return (
+    <div className="h-full overflow-y-auto p-4 md:p-10">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-surface rounded-[36px] shadow-2xl border border-line p-8 md:p-12">
+          <div className="text-center mb-2">
+            <h2 className="text-2xl md:text-3xl font-black text-content">
+              {prompt}<span className="text-amber-600"> は いくつ？</span>
+            </h2>
+          </div>
+          <p className="text-center text-muted font-bold mb-8">数を もとめて キーパッドで こたえてね。正解すると ↑が つくよ。</p>
+
+          <div className="px-2 md:px-6 py-4">
+            <NumberLine min={min} max={max} step={step} majorEvery={majorEvery} midEvery={midEvery} labelEvery={labelEvery}
+              marks={solved ? [{ value: target, label: targetStr, color: '#10b981' }] : []}
+              correctValue={solved ? target : null}
+            />
+          </div>
+
+          {!solved && hint && (
+            <div className="mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-4 flex items-center gap-2 justify-center">
+              <Lightbulb className="text-amber-500 shrink-0" size={20} />
+              <p className="text-muted font-bold">{hint}</p>
+            </div>
+          )}
+
+          {!solved ? (
+            <div className="mt-6">
+              <AnswerEntry onSubmit={submit} allowDecimal accentText="text-amber-600" />
+            </div>
+          ) : (
+            <div className="text-center mt-4">
+              <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 font-black px-5 py-3 rounded-2xl">
+                せいかい！ {prompt} は {targetStr} だね。
               </div>
               <div>
                 <button onClick={onNext} className="mt-6 px-8 py-4 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-xl shadow-lg transition-all active:scale-95">つぎの もんだい</button>

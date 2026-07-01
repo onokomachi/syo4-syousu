@@ -117,6 +117,79 @@ export function generateLine(level: LineLevel, mode: 'place' | 'read' = 'place')
   return { target, targetStr: fmt(target, 1), min: 0, max: 10, step: 0.5, majorEvery: 2 };
 }
 
+/* ===================== ことばから 数直線（合成・相対・単位のいくつ分） ===================== */
+
+export type ComposeLineType = 'add' | 'less' | 'more' | 'units' | 'collect';
+
+export interface ComposeLineProblem {
+  type: ComposeLineType;
+  prompt: string;   // 表示する文（例:「5 と 0.65 をあわせた数」）
+  target: number;
+  targetStr: string;
+  min: number;
+  max: number;
+  step: number;
+  majorEvery: number; // 何目盛りごとに「長い目盛り」を出すか（整数）
+  midEvery: number;   // 何目盛りごとに「中くらいの目盛り」を出すか（0.1）
+  labelEvery: number; // 何目盛りごとに数字ラベルを出すか（整数のみ）
+}
+
+// 「0.ab」形式の文字列（例: a=6,b=5→"0.65" / a=0,b=5→"0.05" / a=6,b=0→"0.6"）
+function fracStr(a: number, b: number): string {
+  if (b === 0) return `0.${a}`;
+  if (a === 0) return `0.0${b}`;
+  return `0.${a}${b}`;
+}
+
+// テスト準拠（例: 5〜6 の数直線に、ことばで表した数を ↑ で置く）。
+// 幅1.0・整数のみラベル・0.1ごとに中目盛り・0.01ごとに小目盛り。
+export function generateComposeLine(): ComposeLineProblem {
+  const two = (x: number) => Math.round(x * 100) / 100;
+  const W = rnd(1, 8);
+  const types: ComposeLineType[] = ['add', 'less', 'more', 'units', 'collect'];
+  const type = types[rnd(0, types.length - 1)];
+  const base = { min: W, max: W + 1, step: 0.01, majorEvery: 100, midEvery: 10, labelEvery: 100 };
+
+  let a = rnd(0, 9), b = rnd(0, 9);
+  let target: number, prompt: string;
+
+  switch (type) {
+    case 'add': {
+      if (a === 0 && b === 0) b = rnd(1, 9);
+      target = two(W + a / 10 + b / 100);
+      prompt = `${W} と ${fracStr(a, b)} をあわせた数`;
+      break;
+    }
+    case 'less': {
+      const c = rnd(1, 9);
+      target = two(W + 1 - c / 100);
+      prompt = `${W + 1} より 0.0${c} 小さい数`;
+      break;
+    }
+    case 'more': {
+      const d = rnd(1, 8);
+      const c = rnd(1, 9);
+      target = two(W + d / 10 + c / 100);
+      prompt = `${W}.${d} より 0.0${c} 大きい数`;
+      break;
+    }
+    case 'units': {
+      if (a === 0 && b === 0) b = rnd(1, 9);
+      target = two(W + a / 10 + b / 100);
+      prompt = `1を${W}こ、0.1を${a}こ、0.01を${b}こ あわせた数`;
+      break;
+    }
+    default: { // collect: 0.01 を N こ集めた数
+      if (a === 0 && b === 0) a = rnd(1, 9);
+      const N = W * 100 + a * 10 + b;
+      target = two(N / 100);
+      prompt = `0.01を ${N}こ 集めた数`;
+    }
+  }
+
+  return { type, prompt, target, targetStr: target.toFixed(2), ...base };
+}
+
 /* ===================== ならべかえ ===================== */
 
 export type OrderLevel = 'order-3' | 'order-5';
